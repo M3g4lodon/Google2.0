@@ -1,8 +1,9 @@
 import os
 
 script_dir = os.getcwd()
-relative_location = "/Data/CACM/cacm.all"
-file_location = script_dir + relative_location
+cacm_relative_location = "/Data/CACM/cacm.all"
+common_words_relative_location = "/Data/CACM/common_words"
+file_location = script_dir + cacm_relative_location
 
 
 class Document:
@@ -14,6 +15,10 @@ class Document:
 
 
 def input_lines():
+    """
+    Open, read the inputs of CACM, a list of lines
+    :return: list
+    """
     file = open(file_location, "r")
     res = file.read().split("\n")  # on crée une liste des lignes du document
     file.close()
@@ -21,6 +26,11 @@ def input_lines():
 
 
 def extract_documents(input_data):
+    """
+    Read inputs and create documents
+    :param input_data: list of lines of input
+    :return: list of documents
+    """
     collections = []
     iter_lines = iter(input_data)
     line = next(iter_lines)
@@ -69,6 +79,9 @@ def extract_documents(input_data):
 
     return collections
 
+def question_1(collection):
+    pass
+
 
 if __name__ == "__main__":
-    print(extract_documents(input_lines())[3203].__dict__)
+    documents=extract_documents(input_lines())
