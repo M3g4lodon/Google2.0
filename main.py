@@ -1,7 +1,7 @@
 import os
 
 script_dir = os.getcwd()
-#donne la localisation actuelle de ton dossier projet
+# donne la localisation actuelle de ton dossier projet
 cacm_relative_location = "/Data/CACM/cacm.all"
 common_words_relative_location = "/Data/CACM/common_words"
 file_location = script_dir + cacm_relative_location
@@ -9,10 +9,10 @@ file_location = script_dir + cacm_relative_location
 
 class Document:
     def __init__(self, id):
-        self.id = id #.I
-        self.title = None #.T
-        self.summary = None #.W
-        self.keywords = [] #.K
+        self.id = id  # .I
+        self.title = None  # .T
+        self.summary = None  # .W
+        self.keywords = []  # .K
 
 
 def input_lines():
@@ -33,7 +33,8 @@ def extract_documents(input_data):
     :return: list of documents
     """
     collections = []
-    iter_lines = iter(input_data) #ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
+    iter_lines = iter(
+        input_data)  # ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
     line = next(iter_lines)
     try:
 
@@ -54,9 +55,9 @@ def extract_documents(input_data):
                 line = next(iter_lines)
                 while "." != line[0]:
                     if doc.title == "":
-                        doc.title += line.lstrip() # lstrip supprime des espaces en début de ligne
+                        doc.title += line.lstrip()  # lstrip supprime des espaces en début de ligne
                     else:
-                        doc.title += " " + line.lstrip() #ajoute un espace si ce n'est pas la première ligne
+                        doc.title += " " + line.lstrip()  # ajoute un espace si ce n'est pas la première ligne
                     line = next(iter_lines)
 
 
@@ -86,10 +87,11 @@ def extract_documents(input_data):
 
     return collections
 
+
 def question_1(collection):
     pass
 
 
 if __name__ == "__main__":
-    documents=extract_documents(input_lines())
-    print (documents[96].__dict__)
+    documents = extract_documents(input_lines())
+    print(documents[96].__dict__)
