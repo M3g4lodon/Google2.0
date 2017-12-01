@@ -4,7 +4,6 @@ script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
 cacm_relative_location = "/Data/CACM/cacm.all"
 common_words_relative_location = "/Data/CACM/common_words"
-file_location = script_dir + cacm_relative_location
 
 
 class Document:
@@ -15,9 +14,9 @@ class Document:
         self.keywords = []  # .K
 
 
-def input_lines():
+def read_to_list(file_location):
     """
-    Open, read the inputs of CACM, a list of lines
+    Open, read a file in file_location and return the list of lines of the document
     :return: list
     """
     file = open(file_location, "r")
@@ -66,7 +65,7 @@ def extract_documents(input_data):
                 doc.summary = ""
                 line = next(iter_lines)
                 while "." != line[0]:
-                    # Suppressioon des espaces en début de ligne
+                    # Suppression des espaces en début de ligne
                     doc.summary += line.lstrip()
                     line = next(iter_lines)
 
@@ -89,9 +88,9 @@ def extract_documents(input_data):
 
 
 def question_1(collection):
-    pass
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
 
 
 if __name__ == "__main__":
-    documents = extract_documents(input_lines())
+    documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
     print(documents[96].__dict__)
