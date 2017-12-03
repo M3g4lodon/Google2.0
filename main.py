@@ -223,7 +223,7 @@ def construction_index(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     dic_termes = {}
     dic_documents = {}
-    posting_list = {}
+    posting_list = []
     j=1 #identifiant de terme
     for doc in collection:
         dic_documents[doc.id] = doc #on remplit le dictionnaire de documents
@@ -233,15 +233,60 @@ def construction_index(collection):
             if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
                 if not has_key(stemmed_word, dic_termes):
                     dic_termes[stemmed_word] = j
-                    posting_list[j] = [doc.id]
+                    posting_list += [(j,doc.id)]
                     j +=1
-                if doc.id not in posting_list[dic_termes[stemmed_word]]:
-                    posting_list[dic_termes[stemmed_word]] = posting_list[dic_termes[stemmed_word]] + [doc.id]
+                else: #on prend en compte les différentes occurrences
+                    posting_list += [(dic_termes[stemmed_word], doc.id)]
     return(posting_list)
 
+#def fusion_termID(t1,t2):
+    if t1==[]:
+        return t2
+    elif t2==[]:
+        return t1
+    elif t1[0][0]<t2[0][0]:
+        return [t1[0]]+fusion_termID(t1[1:],t2)
+    else:
+        return [t2[0]]+fusion_termID(t1,t2[1:])
+
+#def tri_posting_list_termID(posting_list):
+    if len(posting_list) < 2:
+        return posting_list
+    else:
+        m = len(posting_list) // 2
+        return fusion_termID(tri_posting_list_termID(posting_list[:m]), tri_posting_list_termID(posting_list[m:]))
+
+
 # Question 3: on obtient (103151, 16925) et (30107, 5395), on a donc
+
+def tri_termID(list):
+    L=[list[0]]
+    for k in range(1,len(list)):
+        if list[k][0]>L[k-1][0]:
+            L = L + [list[k]]
+        else:
+            j=1
+            while j<k and list[k][0]>L[j-1][0]:
+                j+=1
+            L = L[:j - 1] + [list[k]] + L[j - 1:]
+    return(L)
+
+def tri_docID(list):
+    L=[list[1]]
+    for k in range(1,len(list)):
+        if list[k][1]>L[k-1][1]:
+            L = L + [list[k]]
+        else:
+            j=1
+            while j<k and list[k][1]>L[j-1][1]:
+                j+=1
+            L = L[:j - 1] + [list[k]] + L[j - 1:]
+    return(L)
+
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
     print(documents[1664].__dict__)
-    print(question_2(documents))
-    print(construction_index(documents))
+    print(tri_termID(construction_index(documents)))
+    print(tri_docID(construction_index(documents)))
+
+
