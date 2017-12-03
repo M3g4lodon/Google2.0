@@ -1,9 +1,12 @@
 import os
+import re
+from nltk.stem.snowball import SnowballStemmer
 
 script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
 cacm_relative_location = "/Data/CACM/cacm.all"
 common_words_relative_location = "/Data/CACM/common_words"
+stemmer = SnowballStemmer("english")
 
 
 class Document:
@@ -86,11 +89,125 @@ def extract_documents(input_data):
 
     return collections
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 
 def question_1(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    nb_token = 0
+    for doc in collection:
+        doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
+        for word in doc2.split(' '):
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+        for word in doc.keywords:
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+        if doc.summary is not None:
+            sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
+            for word in sanitized_summary.split(' '):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
 
 
+    return(nb_token)
+
+def question_2(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    nb_token = 0
+    words = []
+    for doc in collection:
+        doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
+        for word in doc2.split(' '):
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+                if word.lower() not in words:
+                    words = words +[word.lower()]
+        for word in doc.keywords:
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+                if word.lower() not in words:
+                    words = words +[word.lower()]
+        if doc.summary is not None:
+            sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
+            for word in sanitized_summary.split(' '):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
+                    if word.lower() not in words:
+                        words = words + [word.lower()]
+
+
+    return(nb_token,words)
+
+
+def question_2_bis(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    nb_token = 0
+    words = []
+    for doc in collection:
+        doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
+        for word in doc2.split(' '):
+            stemmed_word = stemmer.stem(word)
+            if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                nb_token += 1
+                if stemmed_word not in words:
+                    words = words +[stemmed_word]
+        for word in doc.keywords:
+            stemmed_word = stemmer.stem(word)
+            if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                nb_token += 1
+                if stemmed_word not in words:
+                    words = words +[stemmed_word]
+        if doc.summary is not None:
+            sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
+            for word in sanitized_summary.split(' '):
+                stemmed_word = stemmer.stem(word)
+                if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                    nb_token += 1
+                    if stemmed_word not in words:
+                        words = words + [stemmed_word]
+
+
+    return(nb_token,len(words))
+
+def question_3(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    nb_token = 0
+    words = []
+    for doc in collection:
+        if doc.id < 1602:
+            doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
+            for word in doc2.split(' '):
+                stemmed_word = stemmer.stem(word)
+                if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                    nb_token += 1
+                    if stemmed_word not in words:
+                        words = words +[stemmed_word]
+            for word in doc.keywords:
+                stemmed_word = stemmer.stem(word)
+                if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                    nb_token += 1
+                    if stemmed_word not in words:
+                        words = words +[stemmed_word]
+            if doc.summary is not None:
+                sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
+                for word in sanitized_summary.split(' '):
+                    stemmed_word = stemmer.stem(word)
+                    if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                        nb_token += 1
+                        if stemmed_word not in words:
+                            words = words + [stemmed_word]
+
+
+    return(nb_token,len(words))
+
+# Question 3: on obtient (103151, 16925) et (30107, 5395), on a donc
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
-    print(documents[96].__dict__)
+    print(documents[1664].__dict__)
+    print(question_3(documents))
