@@ -68,8 +68,10 @@ def extract_documents(input_data):
                 doc.summary = ""
                 line = next(iter_lines)
                 while "." != line[0]:
-                    # Suppression des espaces en début de ligne
-                    doc.summary += line.lstrip()
+                    if doc.summary == "":
+                        doc.summary += line.lstrip()  # lstrip supprime des espaces en début de ligne
+                    else:
+                        doc.summary += " " + line.lstrip()  # ajoute un espace si ce n'est pas la première ligne
                     line = next(iter_lines)
 
             # Cas ligne mots clés
@@ -96,6 +98,17 @@ def is_number(s):
     except ValueError:
         return False
 
+def split_string(string):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    result = []
+    newstring = string.replace("-", ' ').replace('(', ' ').replace(')', ' ').replace(',', ' ').replace('[', ' ').replace('.',' ').replace(']', ' ')
+    return(newstring.split(' '))
+
+def has_key(key,dict):
+    if key in dict:
+        return True
+    else:
+        return False
 
 def question_1(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -142,7 +155,7 @@ def question_2(collection):
                         words = words + [word.lower()]
 
 
-    return(nb_token,words)
+    return(nb_token,len(words))
 
 
 def question_2_bis(collection):
@@ -206,8 +219,29 @@ def question_3(collection):
 
     return(nb_token,len(words))
 
+def construction_index(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    dic_termes = {}
+    dic_documents = {}
+    posting_list = {}
+    j=1 #identifiant de terme
+    for doc in collection:
+        dic_documents[doc.id] = doc #on remplit le dictionnaire de documents
+
+        for word in split_string(doc.title):
+            stemmed_word = word.lower()
+            if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                if not has_key(stemmed_word, dic_termes):
+                    dic_termes[stemmed_word] = j
+                    posting_list[j] = [doc.id]
+                    j +=1
+                if doc.id not in posting_list[dic_termes[stemmed_word]]:
+                    posting_list[dic_termes[stemmed_word]] = posting_list[dic_termes[stemmed_word]] + [doc.id]
+    return(posting_list)
+
 # Question 3: on obtient (103151, 16925) et (30107, 5395), on a donc
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
     print(documents[1664].__dict__)
-    print(question_3(documents))
+    print(question_2(documents))
+    print(construction_index(documents))
