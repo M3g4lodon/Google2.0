@@ -35,8 +35,7 @@ def extract_documents(input_data):
     :return: list of documents
     """
     collections = []
-    iter_lines = iter(
-        input_data)  # ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
+    iter_lines = iter(input_data)  # ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
     line = next(iter_lines)
     try:
 
@@ -101,7 +100,7 @@ def is_number(s):
 def split_string(string):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     result = []
-    newstring = string.replace("-", ' ').replace('(', ' ').replace(')', ' ').replace(',', ' ').replace('[', ' ').replace('.',' ').replace(']', ' ')
+    newstring = string.replace("-", ' ').replace('(', ' ').replace(')', ' ').replace(',', ' ').replace('[', ' ').replace('.',' ').replace(']', ' ').replace('?', ' ').replace('.', ' ')
     return(newstring.split(' '))
 
 def has_key(key,dict):
@@ -111,26 +110,6 @@ def has_key(key,dict):
         return False
 
 def question_1(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
-    nb_token = 0
-    for doc in collection:
-        doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
-        for word in doc2.split(' '):
-            if word.lower() not in COMMON_WORDS:
-                nb_token += 1
-        for word in doc.keywords:
-            if word.lower() not in COMMON_WORDS:
-                nb_token += 1
-        if doc.summary is not None:
-            sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
-            for word in sanitized_summary.split(' '):
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
-
-
-    return(nb_token)
-
-def question_1_bis(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
     for doc in collection:
@@ -153,58 +132,29 @@ def question_2(collection):
     nb_token = 0
     words = []
     for doc in collection:
-        doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
-        for word in doc2.split(' '):
+        for word in re.split("\W+|\d+", doc.title):
             if word.lower() not in COMMON_WORDS:
                 nb_token += 1
                 if word.lower() not in words:
-                    words = words +[word.lower()]
-        for word in doc.keywords:
-            if word.lower() not in COMMON_WORDS:
-                nb_token += 1
-                if word.lower() not in words:
-                    words = words +[word.lower()]
+                    words = words + [word.lower()]
+        for keywords in doc.keywords:
+            for word in re.split("\W+|\d+", keywords):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
+                    if word.lower() not in words:
+                        words = words +[word.lower()]
         if doc.summary is not None:
-            sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ')
-            for word in sanitized_summary.split(' '):
+            for word in re.split("\W+|\d+", doc.summary):
                 if word.lower() not in COMMON_WORDS:
                     nb_token += 1
                     if word.lower() not in words:
                         words = words + [word.lower()]
 
+    return (len(words),nb_token)
 
-    return(nb_token,len(words))
+#Answer CACM --> (8741, 107508)
 
-
-def question_2_bis(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
-    nb_token = 0
-    words = []
-    for doc in collection:
-        doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
-        for word in doc2.split(' '):
-            stemmed_word = stemmer.stem(word)
-            if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
-                nb_token += 1
-                if stemmed_word not in words:
-                    words = words +[stemmed_word]
-        for word in doc.keywords:
-            stemmed_word = stemmer.stem(word)
-            if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
-                nb_token += 1
-                if stemmed_word not in words:
-                    words = words +[stemmed_word]
-        if doc.summary is not None:
-            sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
-            for word in sanitized_summary.split(' '):
-                stemmed_word = stemmer.stem(word)
-                if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
-                    nb_token += 1
-                    if stemmed_word not in words:
-                        words = words + [stemmed_word]
-
-
-    return(nb_token,len(words))
+ #Pour l'autre bibliothèque : stemmed_word = stemmer.stem(word)
 
 def question_3(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -212,67 +162,48 @@ def question_3(collection):
     words = []
     for doc in collection:
         if doc.id < 1602:
-            doc2 = doc.title.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
-            for word in doc2.split(' '):
-                stemmed_word = stemmer.stem(word)
-                if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+            for word in re.split("\W+|\d+", doc.title):
+                if word.lower() not in COMMON_WORDS:
                     nb_token += 1
-                    if stemmed_word not in words:
-                        words = words +[stemmed_word]
-            for word in doc.keywords:
-                stemmed_word = stemmer.stem(word)
-                if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
-                    nb_token += 1
-                    if stemmed_word not in words:
-                        words = words +[stemmed_word]
-            if doc.summary is not None:
-                sanitized_summary = doc.summary.replace("-",' ').replace('(',' ').replace(')',' ').replace(',',' ').replace('[',' ').replace(']',' ').replace('.',' ')
-                for word in sanitized_summary.split(' '):
-                    stemmed_word = stemmer.stem(word)
-                    if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
+                    if word.lower() not in words:
+                        words = words + [word.lower()]
+            for keywords in doc.keywords:
+                for word in re.split("\W+|\d+", keywords):
+                    if word.lower() not in COMMON_WORDS:
                         nb_token += 1
-                        if stemmed_word not in words:
-                            words = words + [stemmed_word]
+                        if word.lower() not in words:
+                            words = words +[word.lower()]
+            if doc.summary is not None:
+                for word in re.split("\W+|\d+", doc.summary):
+                    if word.lower() not in COMMON_WORDS:
+                        nb_token += 1
+                        if word.lower() not in words:
+                            words = words + [word.lower()]
 
+    return (len(words),nb_token)
 
-    return(nb_token,len(words))
+#Answer CACM --> (4866, 29197)
+
+#================================> PARTIE 2 <=================================
 
 def construction_index(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
-    dic_termes = {}
+    dic_terms = {}
     dic_documents = {}
     posting_list = []
     j=1 #identifiant de terme
     for doc in collection:
         dic_documents[doc.id] = doc #on remplit le dictionnaire de documents
-
-        for word in split_string(doc.title):
+        for word in re.split("\W+|\d+", doc.title):
             stemmed_word = word.lower()
-            if stemmed_word not in COMMON_WORDS and not is_number(stemmed_word):
-                if not has_key(stemmed_word, dic_termes):
-                    dic_termes[stemmed_word] = j
+            if stemmed_word not in COMMON_WORDS:
+                if not has_key(stemmed_word, dic_terms):
+                    dic_terms[stemmed_word] = j
                     posting_list += [(j,doc.id)]
                     j +=1
                 else: #on prend en compte les différentes occurrences
-                    posting_list += [(dic_termes[stemmed_word], doc.id)]
+                    posting_list += [(dic_terms[stemmed_word], doc.id)]
     return(posting_list)
-
-#def fusion_termID(t1,t2):
-    if t1==[]:
-        return t2
-    elif t2==[]:
-        return t1
-    elif t1[0][0]<t2[0][0]:
-        return [t1[0]]+fusion_termID(t1[1:],t2)
-    else:
-        return [t2[0]]+fusion_termID(t1,t2[1:])
-
-#def tri_posting_list_termID(posting_list):
-    if len(posting_list) < 2:
-        return posting_list
-    else:
-        m = len(posting_list) // 2
-        return fusion_termID(tri_posting_list_termID(posting_list[:m]), tri_posting_list_termID(posting_list[m:]))
 
 
 # Question 3: on obtient (103151, 16925) et (30107, 5395), on a donc
@@ -304,7 +235,9 @@ def tri_docID(list):
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
     print(documents[1664].__dict__)
-    print(tri_termID(construction_index(documents)))
-    print(tri_docID(construction_index(documents)))
+    print(question_2(documents))
+    print(question_3(documents))
+    #print(tri_termID(construction_index(documents)))
+   # print(tri_docID(construction_index(documents)))
 
 
