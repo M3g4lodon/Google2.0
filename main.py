@@ -130,6 +130,24 @@ def question_1(collection):
 
     return(nb_token)
 
+def question_1_bis(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    nb_token = 0
+    for doc in collection:
+        for word in re.split("\W+|\d+", doc.title):
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+        for keywords in doc.keywords:
+            for word in re.split("\W+|\d+", keywords):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
+
+        if doc.summary is not None:
+            for word in re.split("\W+|\d+", doc.summary):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
+    return nb_token
+
 def question_2(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
