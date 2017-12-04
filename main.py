@@ -140,6 +140,24 @@ def question_1(collection):
     return (nb_token)
 
 
+def question_1_bis(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    nb_token = 0
+    for doc in collection:
+        for word in re.split("\W+|\d+", doc.title):
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+        for keywords in doc.keywords:
+            for word in re.split("\W+|\d+", keywords):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
+
+        if doc.summary is not None:
+            for word in re.split("\W+|\d+", doc.summary):
+                if word.lower() not in COMMON_WORDS:
+                    nb_token += 1
+    return nb_token
+
 
 def question_2(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -206,7 +224,6 @@ def question_2_bis(collection):
     return (nb_token, len(words))
 
 
-
 def question_3(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
@@ -268,6 +285,6 @@ if __name__ == "__main__":
     # CACM : 104388 tokens 16773 mots dans le vocabulaire
 
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
+    print(documents[2000].__dict__)
     print(question_1(documents))
-    print(question_2(documents))
-    print(construction_index(documents))
+    print(question_1_bis(documents))
