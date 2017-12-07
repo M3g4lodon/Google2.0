@@ -39,8 +39,10 @@ def extract_documents(input_data):
     :return: list of documents
     """
     collections = []
-    iter_lines = iter(
-        input_data)  # ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
+    # Transforme une liste en itérable,
+    # next passe à l'élément suivant de la liste,
+    # si c'est la fin ca raise l'exception StopIteration
+    iter_lines = iter(input_data)
     line = next(iter_lines)
     try:
 
@@ -96,6 +98,10 @@ def extract_documents(input_data):
     return collections
 
 
+###############################################################################
+# ================================  PARTIE 1  =============================== #
+###############################################################################
+
 def question_1(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
@@ -138,7 +144,7 @@ def question_2(collection):
                     if word.lower() not in words:
                         words = words + [word.lower()]
 
-    return (len(words), nb_token)
+    return len(words), nb_token
 
 
 # Answer CACM --> (8741, 107508)
@@ -194,15 +200,16 @@ def question_3(collection):
 
 def question_4(collection):
     k, b = question_3(collection)
-    print(k,b)
+    print(k, b)
     t = 1000000.0
     return int(k * math.pow(t, b))
+
 
 # Question 4 : [CACM] Pour 1 000 000 de tokens, on a une taille de vocabulaire de 23812
 
 def question_5(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
-    word_list=[]
+    word_list = []
     for doc in collection:
         word_list += re.split("\W+|\d+", doc.title)
         if doc.summary is not None:
@@ -215,28 +222,29 @@ def question_5(collection):
             if word.lower() not in words_frequence:
                 words_frequence[word.lower()] = 1
             else:
-                words_frequence[word.lower()]=words_frequence[word.lower()]+1
+                words_frequence[word.lower()] = words_frequence[word.lower()] + 1
 
-    ranks=sorted(words_frequence, key=words_frequence.get,reverse=True)
-    frequences=[words_frequence[word] for word in ranks]
+    ranks = sorted(words_frequence, key=words_frequence.get, reverse=True)
+    frequences = [words_frequence[word] for word in ranks]
 
     # Plot : Rang vs Frequence
-    plt.plot(range(len(words_frequence)),frequences)
+    plt.plot(range(len(words_frequence)), frequences)
     plt.xlabel("Rang(f)")
     plt.ylabel("Frequence(f)")
     plt.show()
 
     # Plot : LogRang vs LogFrequence
-    log_frequences=list(map(lambda x:math.log(x), frequences))
-    log_ranks=list(map(lambda x:math.log(x+1),range(len(words_frequence))))
+    log_frequences = list(map(lambda x: math.log(x), frequences))
+    log_ranks = list(map(lambda x: math.log(x + 1), range(len(words_frequence))))
     plt.plot(log_ranks, log_frequences)
     plt.xlabel("LogRang(f)")
     plt.ylabel("LogFrequence(f)")
     plt.show()
 
 
-
-# ================================> PARTIE 2 <=================================
+###############################################################################
+# ================================  PARTIE 2  =============================== #
+###############################################################################
 
 def construction_index(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
