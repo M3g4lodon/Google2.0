@@ -1,7 +1,10 @@
 import os
 import re
-from nltk.stem.snowball import SnowballStemmer
+import math
 from functools import reduce
+
+from nltk.stem.snowball import SnowballStemmer
+import matplotlib.pyplot as plt
 
 script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
@@ -142,7 +145,7 @@ def question_2(collection):
 
 # Pour l'autre bibliothèque : stemmed_word = stemmer.stem(word)
 
-def question_3(collection):
+def question_2_half(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
     words = []
@@ -166,10 +169,72 @@ def question_3(collection):
                         if word.lower() not in words:
                             words = words + [word.lower()]
 
-    return (len(words), nb_token)
+    return len(words), nb_token
 
 
-# Answer CACM --> (4866, 29197)
+def question_3(collection):
+    M_full, T_full = question_2(collection)
+    M_half, T_half = question_2_half(collection)
+    k = math.log(M_full) / math.log(T_full)
+    k -= math.log(M_half) / math.log(T_half)
+    k = k / ((1.0 / math.log(T_full)) - (1.0 / math.log(T_half)))
+    k = math.exp(k)
+    b = (math.log(M_full) - math.log(k)) / math.log(T_full)
+
+    # Vérification
+    eps = math.pow(10, -10)
+    if abs(M_full - k * math.pow(T_full, b)) > eps or abs(M_half - k * math.pow(T_half, b)) > eps:
+        print("Error")
+    else:
+        return k, b
+
+
+# Question 3 : on obtient pour CACM(103151, 16925) et (30107, 5395),
+# on a donc k=47.9277363421892 et b =0.44936913708084
+
+def question_4(collection):
+    k, b = question_3(collection)
+    print(k,b)
+    t = 1000000.0
+    return int(k * math.pow(t, b))
+
+# Question 4 : [CACM] Pour 1 000 000 de tokens, on a une taille de vocabulaire de 23812
+
+def question_5(collection):
+    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+    word_list=[]
+    for doc in collection:
+        word_list += re.split("\W+|\d+", doc.title)
+        if doc.summary is not None:
+            word_list += re.split("\W+|\d+", doc.summary)
+        if doc.keywords:
+            word_list += reduce((lambda x, y: x + y), list(map(lambda x: re.split("\W+|\d+", x), doc.keywords)))
+    words_frequence = dict()
+    for word in word_list:
+        if word.lower() not in COMMON_WORDS:
+            if word.lower() not in words_frequence:
+                words_frequence[word.lower()] = 1
+            else:
+                words_frequence[word.lower()]=words_frequence[word.lower()]+1
+
+    ranks=sorted(words_frequence, key=words_frequence.get,reverse=True)
+    frequences=[words_frequence[word] for word in ranks]
+
+    # Plot : Rang vs Frequence
+    plt.plot(range(len(words_frequence)),frequences)
+    plt.xlabel("Rang(f)")
+    plt.ylabel("Frequence(f)")
+    plt.show()
+
+    # Plot : LogRang vs LogFrequence
+    log_frequences=list(map(lambda x:math.log(x), frequences))
+    log_ranks=list(map(lambda x:math.log(x+1),range(len(words_frequence))))
+    plt.plot(log_ranks, log_frequences)
+    plt.xlabel("LogRang(f)")
+    plt.ylabel("LogFrequence(f)")
+    plt.show()
+
+
 
 # ================================> PARTIE 2 <=================================
 
@@ -184,34 +249,32 @@ def construction_index(collection):
         word_list = re.split("\W+|\d+", doc.title)
         if doc.summary is not None:
             word_list += re.split("\W+|\d+", doc.summary)
-        if doc.keywords != []:
+        if doc.keywords:
             word_list += reduce((lambda x, y: x + y), list(map(lambda x: re.split("\W+|\d+", x), doc.keywords)))
         for word in word_list:
             stemmed_word = word.lower()
             if stemmed_word not in COMMON_WORDS:
-                if not stemmed_word in dic_terms:
+                if stemmed_word not in dic_terms:
                     dic_terms[stemmed_word] = j
                     posting_list += [(j, doc.id)]
                     j += 1
                 else:  # on prend en compte les différentes occurrences
                     posting_list += [(dic_terms[stemmed_word], doc.id)]
 
-    return (len(posting_list))
+    return len(posting_list)
 
 
-# Question 3: on obtient (103151, 16925) et (30107, 5395), on a donc
-
-def tri_termID(list):
-    L = [list[0]]
-    for k in range(1, len(list)):
-        if list[k][0] > L[k - 1][0]:
-            L = L + [list[k]]
+def tri_termID(liste):
+    L = [liste[0]]
+    for k in range(1, len(liste)):
+        if liste[k][0] > L[k - 1][0]:
+            L = L + [liste[k]]
         else:
             j = 1
-            while j < k and list[k][0] > L[j - 1][0]:
+            while j < k and liste[k][0] > L[j - 1][0]:
                 j += 1
-            L = L[:j - 1] + [list[k]] + L[j - 1:]
-    return (L)
+            L = L[:j - 1] + [liste[k]] + L[j - 1:]
+    return L
 
 
 def tri_docID(list):
@@ -229,7 +292,8 @@ def tri_docID(list):
 
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
-    print(documents[1664].__dict__)
-    print(construction_index(documents))
+    question_5(documents)
+    # print(documents[1664].__dict__)
+    # print(construction_index(documents))
     # print(tri_termID(construction_index(documents)))
     # print(tri_docID(construction_index(documents)))
