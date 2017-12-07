@@ -36,7 +36,8 @@ def extract_documents(input_data):
     :return: list of documents
     """
     collections = []
-    iter_lines = iter(input_data)  # ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
+    iter_lines = iter(
+        input_data)  # ca transforme une liste en itérable, next passe à, l'élément suivant de la liste, si c'est la fin ca raise l'exception stopiteration
     line = next(iter_lines)
     try:
 
@@ -110,6 +111,7 @@ def question_1(collection):
                     nb_token += 1
     return nb_token
 
+
 def question_2(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
@@ -125,7 +127,7 @@ def question_2(collection):
                 if word.lower() not in COMMON_WORDS:
                     nb_token += 1
                     if word.lower() not in words:
-                        words = words +[word.lower()]
+                        words = words + [word.lower()]
         if doc.summary is not None:
             for word in re.split("\W+|\d+", doc.summary):
                 if word.lower() not in COMMON_WORDS:
@@ -133,11 +135,12 @@ def question_2(collection):
                     if word.lower() not in words:
                         words = words + [word.lower()]
 
-    return (len(words),nb_token)
+    return (len(words), nb_token)
 
-#Answer CACM --> (8741, 107508)
 
- #Pour l'autre bibliothèque : stemmed_word = stemmer.stem(word)
+# Answer CACM --> (8741, 107508)
+
+# Pour l'autre bibliothèque : stemmed_word = stemmer.stem(word)
 
 def question_3(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -155,7 +158,7 @@ def question_3(collection):
                     if word.lower() not in COMMON_WORDS:
                         nb_token += 1
                         if word.lower() not in words:
-                            words = words +[word.lower()]
+                            words = words + [word.lower()]
             if doc.summary is not None:
                 for word in re.split("\W+|\d+", doc.summary):
                     if word.lower() not in COMMON_WORDS:
@@ -163,25 +166,26 @@ def question_3(collection):
                         if word.lower() not in words:
                             words = words + [word.lower()]
 
-    return (len(words),nb_token)
+    return (len(words), nb_token)
 
-#Answer CACM --> (4866, 29197)
 
-#================================> PARTIE 2 <=================================
+# Answer CACM --> (4866, 29197)
+
+# ================================> PARTIE 2 <=================================
 
 def construction_index(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     dic_terms = {}
     dic_documents = {}
     posting_list = []
-    j=1 #identifiant de terme
+    j = 1  # identifiant de terme
     for doc in collection:
-        dic_documents[doc.id] = doc #on remplit le dictionnaire de documents
+        dic_documents[doc.id] = doc  # on remplit le dictionnaire de documents
         word_list = re.split("\W+|\d+", doc.title)
         if doc.summary is not None:
             word_list += re.split("\W+|\d+", doc.summary)
         if doc.keywords != []:
-            word_list += reduce((lambda x, y: x+y), list(map(lambda x:re.split("\W+|\d+",x), doc.keywords)))
+            word_list += reduce((lambda x, y: x + y), list(map(lambda x: re.split("\W+|\d+", x), doc.keywords)))
         for word in word_list:
             stemmed_word = word.lower()
             if stemmed_word not in COMMON_WORDS:
@@ -189,7 +193,7 @@ def construction_index(collection):
                     dic_terms[stemmed_word] = j
                     posting_list += [(j, doc.id)]
                     j += 1
-                else: #on prend en compte les différentes occurrences
+                else:  # on prend en compte les différentes occurrences
                     posting_list += [(dic_terms[stemmed_word], doc.id)]
 
     return (len(posting_list))
@@ -198,34 +202,34 @@ def construction_index(collection):
 # Question 3: on obtient (103151, 16925) et (30107, 5395), on a donc
 
 def tri_termID(list):
-    L=[list[0]]
-    for k in range(1,len(list)):
-        if list[k][0]>L[k-1][0]:
+    L = [list[0]]
+    for k in range(1, len(list)):
+        if list[k][0] > L[k - 1][0]:
             L = L + [list[k]]
         else:
-            j=1
-            while j<k and list[k][0]>L[j-1][0]:
-                j+=1
+            j = 1
+            while j < k and list[k][0] > L[j - 1][0]:
+                j += 1
             L = L[:j - 1] + [list[k]] + L[j - 1:]
-    return(L)
+    return (L)
+
 
 def tri_docID(list):
-    L=[list[1]]
-    for k in range(1,len(list)):
-        if list[k][1]>L[k-1][1]:
+    L = [list[1]]
+    for k in range(1, len(list)):
+        if list[k][1] > L[k - 1][1]:
             L = L + [list[k]]
         else:
-            j=1
-            while j<k and list[k][1]>L[j-1][1]:
-                j+=1
+            j = 1
+            while j < k and list[k][1] > L[j - 1][1]:
+                j += 1
             L = L[:j - 1] + [list[k]] + L[j - 1:]
-    return(L)
+    return (L)
+
 
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
     print(documents[1664].__dict__)
     print(construction_index(documents))
-    #print(tri_termID(construction_index(documents)))
-   # print(tri_docID(construction_index(documents)))
-
-
+    # print(tri_termID(construction_index(documents)))
+    # print(tri_docID(construction_index(documents)))
