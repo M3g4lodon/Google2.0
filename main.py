@@ -91,11 +91,6 @@ def extract_documents(input_data):
 
     return collections
 
-def has_key(key,dict):
-    if key in dict:
-        return True
-    else:
-        return False
 
 def question_1(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -190,7 +185,7 @@ def construction_index(collection):
         for word in word_list:
             stemmed_word = word.lower()
             if stemmed_word not in COMMON_WORDS:
-                if not has_key(stemmed_word, dic_terms):
+                if not stemmed_word in dic_terms:
                     dic_terms[stemmed_word] = j
                     posting_list += [(j, doc.id)]
                     j += 1
