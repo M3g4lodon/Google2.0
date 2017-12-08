@@ -1,13 +1,12 @@
 import os
-
-from nltk.stem.snowball import SnowballStemmer
+import re
 
 
 script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
 cacm_relative_location = "/Data/CACM/cacm.all"
+cs276_relative_location= ["/Data/CS276/"+str(i) for i in range(10)]
 common_words_relative_location = "/Data/CACM/common_words"
-stemmer = SnowballStemmer("english")
 
 
 class Document:
@@ -16,6 +15,12 @@ class Document:
         self.title = None  # .T
         self.summary = None  # .W
         self.keywords = []  # .K
+        self.word_lists= list()
+
+def open_folder(folders_root):
+    for folder in folders_root:
+        for file_location in os.listdir(os.getcwd()+folder):
+            pass
 
 
 def read_to_list(file_location):
@@ -35,6 +40,7 @@ def extract_documents(input_data):
     :param input_data: list of lines of input
     :return: list of documents
     """
+
     collections = []
     # Transforme une liste en itérable,
     # next passe à l'élément suivant de la liste,
@@ -63,6 +69,7 @@ def extract_documents(input_data):
                         doc.title += line.lstrip()  # lstrip supprime des espaces en début de ligne
                     else:
                         doc.title += " " + line.lstrip()  # ajoute un espace si ce n'est pas la première ligne
+                    doc.word_lists+=re.split("\W+|\d+",line.lstrip())
                     line = next(iter_lines)
 
 
@@ -75,6 +82,7 @@ def extract_documents(input_data):
                         doc.summary += line.lstrip()  # lstrip supprime des espaces en début de ligne
                     else:
                         doc.summary += " " + line.lstrip()  # ajoute un espace si ce n'est pas la première ligne
+                    doc.word_lists += re.split("\W+|\d+", line.lstrip())
                     line = next(iter_lines)
 
             # Cas ligne mots clés
@@ -83,6 +91,7 @@ def extract_documents(input_data):
                 line = next(iter_lines)
                 while "." != line[0]:
                     doc.keywords += map(lambda x: x.replace(', ', ''), line.split(', '))
+                    doc.word_lists += re.split("\W+|\d+", line)
                     line = next(iter_lines)
 
             # Cas ligne quelconque
@@ -93,3 +102,7 @@ def extract_documents(input_data):
         collections.append(doc)
 
     return collections
+
+if __name__ =="__main__":
+    documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
+    print(documents[2000].__dict__)
