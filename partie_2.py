@@ -9,7 +9,7 @@ from import_data import *
 # ================================  PARTIE 2  =============================== #
 ###############################################################################
 
-def pre_construction_index(collection):
+def create_posting_list(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     dic_terms = {}
     dic_documents = {}
@@ -35,10 +35,23 @@ def pre_construction_index(collection):
     return sorted(posting_list, key=lambda x:x[0])
 
 
-# def construction_index(collection):
-#     posting_list = pre_construction_index(collection)
-#     posting_list_
+def construction_index(collection):
+    posting_list = create_posting_list(collection)
+    reversed_index = OrderedDict()
+    for term, doc_ID in posting_list:
+        if term in reversed_index:
+            if doc_ID in reversed_index[term]['tf']:
+                reversed_index[term]['tf'][doc_ID] += 1
+            else:
+                reversed_index[term]['tf'][doc_ID] = 1
+                reversed_index[term]['idf'] += 1
+        else:
+            reversed_index[term]={'idf': 1,'tf': {doc_ID: 1}}
+    return [posting_list, reversed_index]
 
 
-if __name__ == "__main__":
-    documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
+
+
+
+
+
