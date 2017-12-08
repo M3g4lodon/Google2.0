@@ -32,40 +32,13 @@ def pre_construction_index(collection):
                 else:  # on prend en compte les différentes occurrences
                     posting_list += [(stemmed_word, doc.id)]
 
-    return posting_list
-
-def tri_termID(liste):
-    L = [liste[0]]
-    for k in range(1, len(liste)):
-        if liste[k][0] > L[k - 1][0]:
-            L = L + [liste[k]]
-        else:
-            j = 1
-            while j < k and liste[k][0] > L[j - 1][0]:
-                j += 1
-            L = L[:j - 1] + [liste[k]] + L[j - 1:]
-    return L
+    return sorted(posting_list, key=lambda x:x[0])
 
 
-def tri_docID(liste):
-    L = [liste[1]]
-    for k in range(1, len(liste)):
-        if liste[k][1] > L[k - 1][1]:
-            L = L + [liste[k]]
-        else:
-            j = 1
-            while j < k and liste[k][1] > L[j - 1][1]:
-                j += 1
-            L = L[:j - 1] + [liste[k]] + L[j - 1:]
-    return (L)
-
-def construction_index(collection):
-    posting_list = pre_construction_index(collection)
-    posting_list_
+# def construction_index(collection):
+#     posting_list = pre_construction_index(collection)
+#     posting_list_
 
 
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
-    print(construction_index(documents))
-    print(tri_termID(construction_index(documents)))
-    print(tri_docID(construction_index(documents)))
