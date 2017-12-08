@@ -17,12 +17,7 @@ def create_posting_list(collection):
     j = 1  # identifiant de terme
     for doc in collection:
         dic_documents[doc.id] = doc  # on remplit le dictionnaire de documents
-        word_list = re.split("\W+|\d+", doc.title)
-        if doc.summary is not None:
-            word_list += re.split("\W+|\d+", doc.summary)
-        if doc.keywords:
-            word_list += reduce((lambda x, y: x + y), list(map(lambda x: re.split("\W+|\d+", x), doc.keywords)))
-        for word in word_list:
+        for word in doc.word_lists:
             stemmed_word = word.lower()
             if stemmed_word not in COMMON_WORDS:
                 if stemmed_word not in dic_terms:
