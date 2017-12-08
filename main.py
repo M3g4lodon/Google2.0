@@ -224,18 +224,25 @@ def question_5(collection):
             else:
                 words_frequence[word.lower()] = words_frequence[word.lower()] + 1
 
-    ranks = sorted(words_frequence, key=words_frequence.get, reverse=True)
-    frequences = [words_frequence[word] for word in ranks]
+    sorted_words = sorted(words_frequence, key=words_frequence.get, reverse=True)
+    frequences = [words_frequence[word] for word in sorted_words]
+    ranks=[1]
+    for rank in range(1,len(frequences)):
+        if frequences[rank-1]==frequences[rank]:
+            ranks.append(ranks[-1])
+        else:
+            ranks.append(rank)
+
 
     # Plot : Rang vs Frequence
-    plt.plot(range(len(words_frequence)), frequences)
+    plt.plot(ranks, frequences)
     plt.xlabel("Rang(f)")
     plt.ylabel("Frequence(f)")
     plt.show()
 
     # Plot : LogRang vs LogFrequence
     log_frequences = list(map(lambda x: math.log(x), frequences))
-    log_ranks = list(map(lambda x: math.log(x + 1), range(len(words_frequence))))
+    log_ranks = list(map(lambda x: math.log(x), ranks))
     plt.plot(log_ranks, log_frequences)
     plt.xlabel("LogRang(f)")
     plt.ylabel("LogFrequence(f)")
@@ -285,16 +292,16 @@ def tri_termID(liste):
     return L
 
 
-def tri_docID(list):
-    L = [list[1]]
-    for k in range(1, len(list)):
-        if list[k][1] > L[k - 1][1]:
-            L = L + [list[k]]
+def tri_docID(liste):
+    L = [liste[1]]
+    for k in range(1, len(liste)):
+        if liste[k][1] > L[k - 1][1]:
+            L = L + [liste[k]]
         else:
             j = 1
-            while j < k and list[k][1] > L[j - 1][1]:
+            while j < k and liste[k][1] > L[j - 1][1]:
                 j += 1
-            L = L[:j - 1] + [list[k]] + L[j - 1:]
+            L = L[:j - 1] + [liste[k]] + L[j - 1:]
     return (L)
 
 
