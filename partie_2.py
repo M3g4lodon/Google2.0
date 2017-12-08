@@ -1,5 +1,6 @@
 import re
 from functools import reduce
+from collections import OrderedDict
 
 from import_data import *
 
@@ -8,7 +9,7 @@ from import_data import *
 # ================================  PARTIE 2  =============================== #
 ###############################################################################
 
-def construction_index(collection):
+def pre_construction_index(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     dic_terms = {}
     dic_documents = {}
@@ -26,13 +27,12 @@ def construction_index(collection):
             if stemmed_word not in COMMON_WORDS:
                 if stemmed_word not in dic_terms:
                     dic_terms[stemmed_word] = j
-                    posting_list += [(j, doc.id)]
+                    posting_list += [(stemmed_word, doc.id)] #on construit la posting list avec les termes et pas leur ID
                     j += 1
                 else:  # on prend en compte les différentes occurrences
-                    posting_list += [(dic_terms[stemmed_word], doc.id)]
+                    posting_list += [(stemmed_word, doc.id)]
 
-    return len(posting_list)
-
+    return posting_list
 
 def tri_termID(liste):
     L = [liste[0]]
@@ -58,6 +58,11 @@ def tri_docID(liste):
                 j += 1
             L = L[:j - 1] + [liste[k]] + L[j - 1:]
     return (L)
+
+def construction_index(collection):
+    posting_list = pre_construction_index(collection)
+    posting_list_
+
 
 if __name__ == "__main__":
     documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
