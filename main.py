@@ -234,7 +234,7 @@ def question_5(collection):
             ranks.append(rank)
 
 
-    # Plot : Rang vs Frequence
+    # Plot : Rang vs Frequence// le rang est le classement par rapport à l'occurence
     plt.plot(ranks, frequences)
     plt.xlabel("Rang(f)")
     plt.ylabel("Frequence(f)")
