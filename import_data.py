@@ -1,31 +1,48 @@
 import os
 import re
 
-
 script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
 cacm_relative_location = "/Data/CACM/cacm.all"
-cs276_relative_location= ["/Data/CS276/"+str(i) for i in range(10)]
+cs276_relative_location = ["/Data/CS276/" + str(i) for i in range(10)]
 common_words_relative_location = "/Data/CACM/common_words"
 
 
 class Document:
-    def __init__(self, id):
-        self.id = id  # .I
+    __ID = 0
+
+    def __init__(self, id=None):
+        if id is None:
+            self.id = Document.__ID
+            Document.__ID += 1
+        else:
+            self.id = id  # .I
         self.title = None  # .T
         self.summary = None  # .W
         self.keywords = []  # .K
-        self.word_lists= list()
+        self.word_lists = list()
 
-def open_folder(folders_root):
+
+def extract_documents_CS276():
+    folders_root = cs276_relative_location
+    collections = set()
     for folder in folders_root:
-        for file_location in os.listdir(os.getcwd()+folder):
-            pass
+        for file_name in os.listdir(script_dir + folder):
+            file = open(script_dir + folder + '/' + file_name, 'r')
+            res = file.read()
+            file.close()
+            doc = Document()
+            doc.title = file_name
+            doc.word_lists = res.split()
+            collections.add(doc)
+
+    return collections
 
 
 def read_to_list(file_location):
     """
     Open, read a file in file_location and return the list of lines of the document
+    :param file_location :string
     :return: list
     """
     file = open(file_location, "r")
@@ -34,13 +51,12 @@ def read_to_list(file_location):
     return res
 
 
-def extract_documents(input_data):
+def extract_documents_CACM():
     """
-    Read inputs and create documents
-    :param input_data: list of lines of input
-    :return: list of documents
+    Read a file and create documents
+    :return: list of documents CACM
     """
-
+    input_data = read_to_list(script_dir + cacm_relative_location)
     collections = []
     # Transforme une liste en itérable,
     # next passe à l'élément suivant de la liste,
@@ -69,9 +85,8 @@ def extract_documents(input_data):
                         doc.title += line.lstrip()  # lstrip supprime des espaces en début de ligne
                     else:
                         doc.title += " " + line.lstrip()  # ajoute un espace si ce n'est pas la première ligne
-                    doc.word_lists+=re.split("\W+|\d+",line.lstrip())
+                    doc.word_lists += re.split("\W+|\d+", line.lstrip())
                     line = next(iter_lines)
-
 
             # Cas ligne résumé
             elif line == ".W":
@@ -103,6 +118,9 @@ def extract_documents(input_data):
 
     return collections
 
-if __name__ =="__main__":
-    documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
-    print(documents[2000].__dict__)
+
+if __name__ == "__main__":
+    # CACM_documents = extract_documents_CACM()
+    # print(CACM_documents[2000].__dict__)
+    CS276_documents = extract_documents_CS276()
+    print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)

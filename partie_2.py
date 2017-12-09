@@ -1,8 +1,10 @@
-import re
-from functools import reduce
 from collections import OrderedDict
+from nltk.stem.snowball import SnowballStemmer
+
 
 from import_data import *
+
+stemmer = SnowballStemmer("english")
 
 
 ###############################################################################
@@ -18,8 +20,8 @@ def create_posting_list(collection):
     for doc in collection:
         dic_documents[doc.id] = doc  # on remplit le dictionnaire de documents
         for word in doc.word_lists:
-            stemmed_word = word.lower()
-            if stemmed_word not in COMMON_WORDS:
+            stemmed_word = stemmer.stem(word)
+            if word.lower() not in COMMON_WORDS:
                 if stemmed_word not in dic_terms:
                     dic_terms[stemmed_word] = j
                     posting_list += [(stemmed_word, doc.id)] #on construit la posting list avec les termes et pas leur ID

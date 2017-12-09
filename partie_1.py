@@ -1,10 +1,10 @@
-import os
-import re
 import math
-from functools import reduce
-
+from nltk.stem.snowball import SnowballStemmer
 import matplotlib.pyplot as plt
+
 from import_data import *
+
+stemmer = SnowballStemmer("english")
 
 
 ###############################################################################
@@ -22,34 +22,42 @@ def question_1(collection):
     return nb_token
 
 
+# Answer [CACM] 107508 tokens (sans stemmer)
+# Answer [CS276] 17803941 tokens
+
 def question_2(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
-    words = []
+    words = set()
     for doc in collection:
         for word in doc.word_lists:
             if word.lower() not in COMMON_WORDS:
                 nb_token += 1
-                if word.lower() not in words:
-                    words = words + [word.lower()]
+                words.add(stemmer.stem(word))
     return len(words), nb_token
 
 
-# Answer CACM --> (8741, 107508)
+# [CS276] result (297746, 17803941)
+# Answer [CACM]     8741 mots (taille de vocabulaire) (sans stemmer)
+# Answer [CS276]    297746 mots (taille du vocabulaire)
 
 def question_2_half(collection):
     COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
-    words = []
-    for doc in collection:
-        if doc.id < 1602:
-            for word in doc.word_lists:
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
-                    if word.lower() not in words:
-                        words = words + [word.lower()]
+    words = set()
+    n = len(collection)
+    i = 0
+    while i < n / 2:
+        doc = collection.pop()
+        for word in doc.word_lists:
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+                words.add(words.add(stemmer.stem(word)))
+        i += 1
+
     return len(words), nb_token
 
+# [CS276] result (184722, 8729267)
 
 def question_3(collection):
     M_full, T_full = question_2(collection)
@@ -68,12 +76,10 @@ def question_3(collection):
         return k, b
 
 
-# Question 3 : on obtient pour CACM(103151, 16925) et (30107, 5395),
-# on a donc k=47.9277363421892 et b =0.44936913708084
+# Answer [CACM] k=47.9277363421892 b =0.44936913708084 (sans stemmer)
 
 def question_4(collection):
     k, b = question_3(collection)
-    print(k, b)
     t = 1000000.0
     return int(k * math.pow(t, b))
 
@@ -118,6 +124,13 @@ def question_5(collection):
 
 
 if __name__ == "__main__":
-    documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
-    print(question_1(documents))
+    # documents = extract_documents_CACM()
+    documents = extract_documents_CS276()
+    # print(question_1(documents))
+    # print(question_2(documents))
+    print(question_2_half(documents))
+    print(question_3(documents))
+    print(question_4(documents))
     question_5(documents)
+
+#TODO regarder collections counter
