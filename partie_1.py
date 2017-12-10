@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from import_data import *
 
 stemmer = SnowballStemmer("english")
+COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
 
 
 ###############################################################################
@@ -13,7 +14,6 @@ stemmer = SnowballStemmer("english")
 
 
 def question_1(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
     for doc in collection:
         for word in doc.word_lists:
@@ -26,7 +26,6 @@ def question_1(collection):
 # Answer [CS276] 17803941 tokens
 
 def question_2(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
     words = set()
     for doc in collection:
@@ -37,12 +36,10 @@ def question_2(collection):
     return len(words), nb_token
 
 
-# [CS276] result (297746, 17803941)
 # Answer [CACM]     8741 mots (taille de vocabulaire) (sans stemmer)
 # Answer [CS276]    297746 mots (taille du vocabulaire)
 
 def question_2_half(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
     words = set()
     n = len(collection)
@@ -57,6 +54,7 @@ def question_2_half(collection):
 
     return len(words), nb_token
 
+
 # [CS276] result (184722, 8729267)
 
 def question_3(collection):
@@ -69,14 +67,14 @@ def question_3(collection):
     b = (math.log(M_full) - math.log(k)) / math.log(T_full)
 
     # Vérification
-    eps = math.pow(10, -10)
+    eps = math.pow(10, -9)
     if abs(M_full - k * math.pow(T_full, b)) > eps or abs(M_half - k * math.pow(T_half, b)) > eps:
-        print("Error")
-    else:
-        return k, b
+        print("Question 3 : Error on k and b")
+    return k, b
 
 
-# Answer [CACM] k=47.9277363421892 b =0.44936913708084 (sans stemmer)
+# Answer [CACM]  k=47.9277363421892  b = 0.44936913708084 (sans stemmer)
+# Answer [CS276] k=4.713488927858546 b = 0.6620912701354705)
 
 def question_4(collection):
     k, b = question_3(collection)
@@ -84,10 +82,10 @@ def question_4(collection):
     return int(k * math.pow(t, b))
 
 
-# Question 4 : [CACM] Pour 1 000 000 de tokens, on a une taille de vocabulaire de 23812
+# Question 4 : [CACM]  Pour 1 000 000 de tokens, on a une taille de vocabulaire de 23812
+# Question 4 : [CS276] Pour 1 000 000 de tokens, on a une taille de vocabulaire de 44430
 
 def question_5(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     word_list = []
     for doc in collection:
         word_list += doc.word_lists
@@ -124,13 +122,11 @@ def question_5(collection):
 
 
 if __name__ == "__main__":
-    # documents = extract_documents_CACM()
-    documents = extract_documents_CS276()
+    documents = extract_documents_CACM()
+    # documents = extract_documents_CS276()
     # print(question_1(documents))
     # print(question_2(documents))
-    print(question_2_half(documents))
-    print(question_3(documents))
-    print(question_4(documents))
+    # print(question_2_half(documents))
+    # print(question_3(documents))
+    # print(question_4(documents))
     question_5(documents)
-
-#TODO regarder collections counter
