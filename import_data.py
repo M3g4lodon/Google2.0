@@ -23,10 +23,24 @@ class Document:
         self.word_lists = list()
 
 
-def extract_documents_CS276():
+def extract_documents_CS276(block_nb=None):
     folders_root = cs276_relative_location
     collections = set()
-    for folder in folders_root:
+    # Read all blocks
+    if block_nb is None:
+        for folder in folders_root:
+            for file_name in os.listdir(script_dir + folder):
+                file = open(script_dir + folder + '/' + file_name, 'r')
+                res = file.read()
+                file.close()
+                doc = Document()
+                doc.title = file_name
+                doc.word_lists = res.split()
+                collections.add(doc)
+
+    # Only Read a block
+    else:
+        folder="/Data/CS276/" + str(block_nb)
         for file_name in os.listdir(script_dir + folder):
             file = open(script_dir + folder + '/' + file_name, 'r')
             res = file.read()
@@ -35,6 +49,7 @@ def extract_documents_CS276():
             doc.title = file_name
             doc.word_lists = res.split()
             collections.add(doc)
+
 
     return collections
 
@@ -122,5 +137,7 @@ def extract_documents_CACM():
 if __name__ == "__main__":
     # CACM_documents = extract_documents_CACM()
     # print(CACM_documents[2000].__dict__)
-    CS276_documents = extract_documents_CS276()
+    # CS276_documents = extract_documents_CS276()
+    # print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)
+    CS276_documents = extract_documents_CS276(1)
     print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)
