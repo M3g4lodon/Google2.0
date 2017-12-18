@@ -1,4 +1,5 @@
-from collections import OrderedDict
+from collections import OrderedDict, Counter
+from functools import reduce
 from nltk.stem.snowball import SnowballStemmer
 import re
 from import_data import *
@@ -10,6 +11,10 @@ COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
 ###############################################################################
 # ================================  PARTIE 2  =============================== #
 ###############################################################################
+
+
+###############################################################################
+#                           Block Sorted Based Index
 
 def create_posting_list(collection):
     dic_terms = {}
@@ -137,6 +142,47 @@ def BSBI_Index_construction_CS276():
     return reversed_index, dic_documents
 
 
+###############################################################################
+#                                Map Reduce
+
+def create_reversed_index(reversed_index, element):
+    doc_id, word = element
+    if word in reversed_index:
+        if doc_id in reversed_index[word]['tf']:
+            reversed_index[word]['tf'][doc_id] +=1
+        else:
+            reversed_index[word]['idf'] +=1
+            reversed_index[word]['tf'][doc_id] = 1
+    else:
+        reversed_index[word] = {}
+        reversed_index[word]['idf'] = 1
+        reversed_index[word]['tf'] = {doc_id: 1}
+    return reversed_index
+
+
+def concat_dict(x, y):
+    x.update(y)
+    return x
+
+
+def Map_Reduced_Index(collection):
+    pre_dic_documents = list(map(lambda doc: {doc.id: doc}, collection))
+    dic_documents = reduce(concat_dict, pre_dic_documents)
+
+    pre_posting_list = list(map(lambda doc:
+                                list(map(lambda word: (doc.id, stemmer.stem(word)),
+                                         filter(lambda x: not x.lower() in COMMON_WORDS, doc.word_lists)
+                                         )), collection))
+
+    posting_list = reduce(lambda x, y: x + y, pre_posting_list)
+    reversed_index=reduce(create_reversed_index,[{}]+posting_list)
+    return reversed_index, dic_documents
+
+
+###############################################################################
+#                                      Tools
+
+
 def terms_max(reversed_index):
     trms_max = []
     max_idf = 0
@@ -151,19 +197,26 @@ def terms_max(reversed_index):
 
 
 if __name__ == "__main__":
-    # documents = extract_documents_CACM()
+    documents = extract_documents_CACM()
+    # documents = extract_documents_CS276()
 
     # Test Reverse Index
     # print(reversed_index[stemmer.stem('system')]['tf'][92])  # Should be equal to 2
 
-    # test Write + Read in Buffer
-    # reversed_index = construction_index_one_block(documents)
+    # Test Write + Read in Buffer
+    reversed_index,_ = construction_index_one_block(documents)
+    # print(reversed_index)
     # write_in_buffer(0, reversed_index)
     # RI1 = read_in_buffer(0)
     # print(reversed_index == RI1)
 
     # Index construction on CS276
     # reversed_index_BSBI, _ = BSBI_Index_construction_CS276()
-    documents = extract_documents_CS276(0)
-    reversed_index, _ = construction_index_one_block(documents)
+    # documents = extract_documents_CS276(0)
+    # reversed_index, _ = construction_index_one_block(documents)
     print(terms_max(reversed_index))
+
+    # Map Reduce Construction
+    # print(Map_Reduced_Index(documents))
+
+    # TODO test unitaire

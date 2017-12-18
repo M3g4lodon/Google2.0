@@ -19,8 +19,21 @@ class Document:
             self.id = id  # .I
         self.title = None  # .T
         self.summary = None  # .W
-        self.keywords = []  # .K
+        self.keywords = list()  # .K
         self.word_lists = list()
+
+    def __repr__(self):
+        res=""
+        res+="Document id : "+str(self.id)+"\n"
+        if self.title is not None:
+            res+="Document title : "+str(self.title)+"\n"
+        if self.summary is not None:
+            res+="Document summary : "+str(self.summary)+"\n"
+        if self.keywords:
+            res+="Document keywords : "+str(self.keywords)+"\n"
+        if self.word_lists:
+            res+="List of words of the document : "+str(self.word_lists)
+        return res
 
 
 def extract_documents_CS276(block_nb=None):
@@ -132,7 +145,7 @@ def extract_documents_CACM():
         collections.append(doc)
 
     return collections
-
+# TODO collection set pour CACM
 
 if __name__ == "__main__":
     # CACM_documents = extract_documents_CACM()
