@@ -47,7 +47,15 @@ def construction_index(collection):
                 reversed_index[term]['idf'] += 1
         else:
             reversed_index[term]={'idf': 1,'tf': {doc_ID: 1}}
-    return [posting_list, reversed_index]
+    return reversed_index
+
+def boolean_search(query, index):
+    word_list_query = re.split("\W+|\d+", query)
+    boolean_list = [AND, OR, NOT]
+    i = 0
+    while i < len(word_list_query):
+        if word_list_query[i] in boolean_list:
+            #continuer iciiii
 
 
 
