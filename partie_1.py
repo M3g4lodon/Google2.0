@@ -1,93 +1,61 @@
-import os
-import re
 import math
-from functools import reduce
-
-
+from nltk.stem.snowball import SnowballStemmer
 import matplotlib.pyplot as plt
+
 from import_data import *
 
+stemmer = SnowballStemmer("english")
+COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
 
 
 ###############################################################################
 # ================================  PARTIE 1  =============================== #
 ###############################################################################
 
+
 def question_1(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
     for doc in collection:
-        for word in re.split("\W+|\d+", doc.title):
+        for word in doc.word_lists:
             if word.lower() not in COMMON_WORDS:
                 nb_token += 1
-        for keywords in doc.keywords:
-            for word in re.split("\W+|\d+", keywords):
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
-
-        if doc.summary is not None:
-            for word in re.split("\W+|\d+", doc.summary):
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
     return nb_token
 
 
+# Answer [CACM] 107508 tokens (sans stemmer)
+# Answer [CS276] 17803941 tokens
+
 def question_2(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
-    words = []
+    words = set()
     for doc in collection:
-        for word in re.split("\W+|\d+", doc.title):
+        for word in doc.word_lists:
             if word.lower() not in COMMON_WORDS:
                 nb_token += 1
-                if word.lower() not in words:
-                    words = words + [word.lower()]
-        for keywords in doc.keywords:
-            for word in re.split("\W+|\d+", keywords):
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
-                    if word.lower() not in words:
-                        words = words + [word.lower()]
-        if doc.summary is not None:
-            for word in re.split("\W+|\d+", doc.summary):
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
-                    if word.lower() not in words:
-                        words = words + [word.lower()]
-
+                words.add(stemmer.stem(word))
     return len(words), nb_token
 
 
-# Answer CACM --> (8741, 107508)
-
-# Pour l'autre bibliothèque : stemmed_word = stemmer.stem(word)
+# Answer [CACM]     8741 mots (taille de vocabulaire) (sans stemmer)
+# Answer [CS276]    297746 mots (taille du vocabulaire)
 
 def question_2_half(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     nb_token = 0
-    words = []
-    for doc in collection:
-        if doc.id < 1602:
-            for word in re.split("\W+|\d+", doc.title):
-                if word.lower() not in COMMON_WORDS:
-                    nb_token += 1
-                    if word.lower() not in words:
-                        words = words + [word.lower()]
-            for keywords in doc.keywords:
-                for word in re.split("\W+|\d+", keywords):
-                    if word.lower() not in COMMON_WORDS:
-                        nb_token += 1
-                        if word.lower() not in words:
-                            words = words + [word.lower()]
-            if doc.summary is not None:
-                for word in re.split("\W+|\d+", doc.summary):
-                    if word.lower() not in COMMON_WORDS:
-                        nb_token += 1
-                        if word.lower() not in words:
-                            words = words + [word.lower()]
+    words = set()
+    n = len(collection)
+    i = 0
+    while i < n / 2:
+        doc = collection.pop()
+        for word in doc.word_lists:
+            if word.lower() not in COMMON_WORDS:
+                nb_token += 1
+                words.add(words.add(stemmer.stem(word)))
+        i += 1
 
     return len(words), nb_token
 
+
+# [CS276] result (184722, 8729267)
 
 def question_3(collection):
     M_full, T_full = question_2(collection)
@@ -99,33 +67,28 @@ def question_3(collection):
     b = (math.log(M_full) - math.log(k)) / math.log(T_full)
 
     # Vérification
-    eps = math.pow(10, -10)
+    eps = math.pow(10, -9)
     if abs(M_full - k * math.pow(T_full, b)) > eps or abs(M_half - k * math.pow(T_half, b)) > eps:
-        print("Error")
-    else:
-        return k, b
+        print("Question 3 : Error on k and b")
+    return k, b
 
 
-# Question 3 : on obtient pour CACM(103151, 16925) et (30107, 5395),
-# on a donc k=47.9277363421892 et b =0.44936913708084
+# Answer [CACM]  k=47.9277363421892  b = 0.44936913708084 (sans stemmer)
+# Answer [CS276] k=4.713488927858546 b = 0.6620912701354705)
 
 def question_4(collection):
     k, b = question_3(collection)
-    print(k, b)
     t = 1000000.0
     return int(k * math.pow(t, b))
 
-# Question 4 : [CACM] Pour 1 000 000 de tokens, on a une taille de vocabulaire de 23812
+
+# Question 4 : [CACM]  Pour 1 000 000 de tokens, on a une taille de vocabulaire de 23812
+# Question 4 : [CS276] Pour 1 000 000 de tokens, on a une taille de vocabulaire de 44430
 
 def question_5(collection):
-    COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
     word_list = []
     for doc in collection:
-        word_list += re.split("\W+|\d+", doc.title)
-        if doc.summary is not None:
-            word_list += re.split("\W+|\d+", doc.summary)
-        if doc.keywords:
-            word_list += reduce((lambda x, y: x + y), list(map(lambda x: re.split("\W+|\d+", x), doc.keywords)))
+        word_list += doc.word_lists
     words_frequence = dict()
     for word in word_list:
         if word.lower() not in COMMON_WORDS:
@@ -136,13 +99,12 @@ def question_5(collection):
 
     sorted_words = sorted(words_frequence, key=words_frequence.get, reverse=True)
     frequences = [words_frequence[word] for word in sorted_words]
-    ranks=[1]
-    for rank in range(1,len(frequences)):
-        if frequences[rank-1]==frequences[rank]:
+    ranks = [1]
+    for rank in range(1, len(frequences)):
+        if frequences[rank - 1] == frequences[rank]:
             ranks.append(ranks[-1])
         else:
             ranks.append(rank)
-
 
     # Plot : Rang vs Frequence
     plt.plot(ranks, frequences)
@@ -158,6 +120,13 @@ def question_5(collection):
     plt.ylabel("LogFrequence(f)")
     plt.show()
 
+
 if __name__ == "__main__":
-    documents = extract_documents(read_to_list(script_dir + cacm_relative_location))
+    documents = extract_documents_CACM()
+    # documents = extract_documents_CS276()
+    # print(question_1(documents))
+    # print(question_2(documents))
+    # print(question_2_half(documents))
+    # print(question_3(documents))
+    # print(question_4(documents))
     question_5(documents)
