@@ -174,14 +174,6 @@ def terms_max(reversed_index):
 
 
 
-
-def give_title(docID_list, dict_title):
-    title_list = []
-    for docID in docID_list:
-        title_list += [dict_title[docID]]
-    return title_list
-
-
 if __name__ == "__main__":
     documents = extract_documents_CACM()
     # documents = extract_documents_CS276()

@@ -1,5 +1,12 @@
 from III_Index_Inverse  import *
 
+def give_title(docID_list, dict_title):
+    title_list = []
+    for docID in docID_list:
+        title_list += [dict_title[docID]]
+    return title_list
+
+
 def boolean_search(query, index):
     word_list_query = re.split("\W+|\d+", query)
     operator_list = ['and', 'or', 'not']
