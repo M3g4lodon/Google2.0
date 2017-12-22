@@ -1,6 +1,7 @@
-from collections import OrderedDict, Counter
+from collections import OrderedDict
 from functools import reduce
 from nltk.stem.snowball import SnowballStemmer
+import json
 import re
 from import_data import *
 
@@ -55,54 +56,30 @@ def construction_index_one_block(collection):
 def write_in_buffer(block_index, reversed_index, dic_documents):
     # Write Reversed Index
     file = open(os.getcwd() + "/Buffer/" + "ReversedIndex_" + str(block_index), "w")
-    for term in reversed_index:
-        line = "term : " + term + ", "
-        line += "idf : " + str(reversed_index[term]['idf']) + ", "
-        line += "tf : {"
-        for doc_ID in reversed_index[term]['tf']:
-            line += str(doc_ID) + " : " + str(reversed_index[term]['tf'][doc_ID]) + ", "
-        line = line[:-2]  # Delete the last ','
-        line += "}\n"
-        file.write(line)
+    json.dump(reversed_index, file)
     file.close()
 
     # Write Documents Dictionnary
     file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_" + str(block_index), "w")
-    for doc_id in dic_documents:
-        line = "id : " + str(doc_id)
-        line += ", title : " + dic_documents[doc_id] + "\n"
-        file.write(line)
+    json.dump(dic_documents, file)
     file.close()
 
 
 def read_in_buffer(block_index):
     # Read Reversed Index
-    reversed_index = OrderedDict()
     file = open(os.getcwd() + "/Buffer/" + "ReversedIndex_" + str(block_index), "r")
-    lines = file.readlines()
+    reversed_index = OrderedDict(json.load(file))
     file.close()
-    for line in lines:
-        term = re.search(r"term : (.+), idf", line)[1]
-        idf = int(re.search(r"idf : (\w+)", line)[1])
-        reversed_index[term] = {'idf': idf, 'tf': {}}
-        tfs = re.search(r'tf : {(.+)}', line)[1]
-        for key_val in tfs.split(','):
-            doc_id, tf = key_val.split(':')
-            reversed_index[term]['tf'][int(doc_id)] = int(tf)
 
     # Read Dictionnary of documents
-    dic_documents = {}
     file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_" + str(block_index), "r")
-    lines = file.readlines()
+    dic_documents = json.load(file)
     file.close()
-    for line in lines:
-        doc_id = re.search(r"id : (\w+), title", line)[1]
-        title = re.search(r'title : (.+)', line)[1]
-        dic_documents[doc_id] = title
     return reversed_index, dic_documents
 
 
 def BSBI_Index_construction_CS276():
+    """CS276 only"""
     reversed_index = OrderedDict()
     dic_documents = {}
     block_nb = 10
@@ -149,9 +126,9 @@ def create_reversed_index(reversed_index, element):
     doc_id, word = element
     if word in reversed_index:
         if doc_id in reversed_index[word]['tf']:
-            reversed_index[word]['tf'][doc_id] +=1
+            reversed_index[word]['tf'][doc_id] += 1
         else:
-            reversed_index[word]['idf'] +=1
+            reversed_index[word]['idf'] += 1
             reversed_index[word]['tf'][doc_id] = 1
     else:
         reversed_index[word] = {}
@@ -175,7 +152,7 @@ def Map_Reduced_Index(collection):
                                          )), collection))
 
     posting_list = reduce(lambda x, y: x + y, pre_posting_list)
-    reversed_index=reduce(create_reversed_index,[{}]+posting_list)
+    reversed_index = reduce(create_reversed_index, [{}] + posting_list)
     return reversed_index, dic_documents
 
 
@@ -204,19 +181,85 @@ if __name__ == "__main__":
     # print(reversed_index[stemmer.stem('system')]['tf'][92])  # Should be equal to 2
 
     # Test Write + Read in Buffer
-    reversed_index,_ = construction_index_one_block(documents)
+    reversed_index, index_document = construction_index_one_block(documents)
     # print(reversed_index)
-    # write_in_buffer(0, reversed_index)
-    # RI1 = read_in_buffer(0)
+    write_in_buffer(0, reversed_index, index_document)
+    RI1, ID1 = read_in_buffer(0)
+    # print(index_document)
+    # print(ID1)
     # print(reversed_index == RI1)
+    # print(index_document == ID1)
 
     # Index construction on CS276
     # reversed_index_BSBI, _ = BSBI_Index_construction_CS276()
     # documents = extract_documents_CS276(0)
     # reversed_index, _ = construction_index_one_block(documents)
-    print(terms_max(reversed_index))
+    # print(terms_max(reversed_index))
 
     # Map Reduce Construction
-    # print(Map_Reduced_Index(documents))
+    # inverted_index,_= Map_Reduced_Index(documents)
+    # cProfile.run("inverted_index,_= Map_Reduced_Index(documents)")
 
-    # TODO test unitaire
+
+    # TODO test unitaire,
+    # TODO stocker les résultats intermédiaires en mémoire,
+    # TODO multihtreader les blocs,
+    # TODO pouvoir avoir plus de 10 blocs
+
+"""documents = extract_documents_CACM()
+
+cProfile.run("reversed_index,_ = construction_index_one_block(documents)")
+
+         13246135 function calls in 7.371 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.012    0.012    7.371    7.371 <string>:1(<module>)
+        1    1.433    1.433    7.298    7.298 partie_2.py:19(create_posting_list)
+   107508    0.011    0.000    0.011    0.000 partie_2.py:37(<lambda>)
+        1    0.061    0.061    7.359    7.359 partie_2.py:40(construction_index_one_block)
+   208440    2.994    0.000    5.739    0.000 snowball.py:1197(stem)
+   150848    0.328    0.000    0.364    0.000 snowball.py:213(_r1r2_standard)
+    29074    0.022    0.000    0.025    0.000 util.py:8(suffix_replace)
+        1    0.000    0.000    7.371    7.371 {built-in method builtins.exec}
+  1060064    0.126    0.000    0.126    0.000 {built-in method builtins.len}
+        1    0.082    0.082    0.093    0.093 {built-in method builtins.sorted}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+ 10181381    1.973    0.000    1.973    0.000 {method 'endswith' of 'str' objects}
+    27774    0.007    0.000    0.007    0.000 {method 'join' of 'str' objects}
+   416880    0.068    0.000    0.068    0.000 {method 'lower' of 'str' objects}
+   607504    0.140    0.000    0.140    0.000 {method 'replace' of 'str' objects}
+   456656    0.115    0.000    0.115    0.000 {method 'startswith' of 'str' objects}
+
+    
+cProfile.run("inverted_index,_= Map_Reduced_Index(documents)")
+
+         9614755 function calls in 8.388 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.010    0.010    8.388    8.388 <string>:1(<module>)
+   107508    0.167    0.000    0.167    0.000 partie_2.py:148(create_reversed_index)
+     3203    0.001    0.000    0.002    0.000 partie_2.py:163(concat_dict)
+        1    0.006    0.006    8.378    8.378 partie_2.py:168(Map_Reduced_Index)
+     3204    0.001    0.000    0.001    0.000 partie_2.py:169(<lambda>)
+     3204    0.114    0.000    6.608    0.002 partie_2.py:172(<lambda>)
+   107508    0.092    0.000    4.985    0.000 partie_2.py:173(<lambda>)
+   208440    1.467    0.000    1.509    0.000 partie_2.py:174(<lambda>)
+     3203    0.806    0.000    0.806    0.000 partie_2.py:177(<lambda>)
+   107508    2.553    0.000    4.893    0.000 snowball.py:1197(stem)
+   105897    0.302    0.000    0.333    0.000 snowball.py:213(_r1r2_standard)
+    28594    0.021    0.000    0.024    0.000 util.py:8(suffix_replace)
+        3    0.788    0.263    1.763    0.588 {built-in method _functools.reduce}
+        1    0.000    0.000    8.388    8.388 {built-in method builtins.exec}
+   757723    0.108    0.000    0.108    0.000 {built-in method builtins.len}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+  7086030    1.660    0.000    1.660    0.000 {method 'endswith' of 'str' objects}
+    24072    0.007    0.000    0.007    0.000 {method 'join' of 'str' objects}
+   315948    0.063    0.000    0.063    0.000 {method 'lower' of 'str' objects}
+   427700    0.122    0.000    0.122    0.000 {method 'replace' of 'str' objects}
+   321803    0.098    0.000    0.098    0.000 {method 'startswith' of 'str' objects}
+     3203    0.001    0.000    0.001    0.000 {method 'update' of 'dict' objects}
+"""
