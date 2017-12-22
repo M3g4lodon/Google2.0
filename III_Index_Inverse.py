@@ -2,8 +2,8 @@ from collections import OrderedDict
 from functools import reduce
 from nltk.stem.snowball import SnowballStemmer
 import json
-import re
-from import_data import *
+
+from I_Importation_Donnees import *
 
 stemmer = SnowballStemmer("english")
 COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -172,44 +172,7 @@ def terms_max(reversed_index):
 
     return trms_max
 
-def boolean_search(query, index):
-    word_list_query = re.split("\W+|\d+", query)
-    operator_list = ['and', 'or', 'not']
-    i = 0
-    doc_set_and, doc_set_or, doc_set_not = set(), set(), set()
-    last_bool = 'or'
-    while i < len(word_list_query):
-        word = word_list_query[i].lower()
-        if word in operator_list:
-            if word == 'and':
-                last_bool = 'and'
-                i +=1
-            elif word == 'or':
-                last_bool = 'or'
-                i += 1
-            else: #word == 'NOT':
-                last_bool = 'not'
-                i += 1
-        else:
-            word = stemmer.stem(word)
-            if word in index:
-                if last_bool == 'and':
-                    for key in index[word]['tf']:
-                        doc_set_and.add(key)
-                elif last_bool == 'or':
-                    for key in index[word]['tf']:
-                        doc_set_or.add(key)
-                elif last_bool == 'not':
-                    for key in index[word]['tf']:
-                        doc_set_not.add(key)
-                else:
-                    raise EnvironmentError
-            i+=1
-    if doc_set_and == set():
-        return doc_set_or.difference(doc_set_not)
-    else:
-        return doc_set_and.intersection(doc_set_or).difference(doc_set_not)
-##Pour le and --> il faut qu'il y ait les deux mots dans les documents !
+
 
 
 def give_title(docID_list, dict_title):
@@ -241,9 +204,7 @@ if __name__ == "__main__":
     # documents = extract_documents_CS276(0)
     # reversed_index, _ = construction_index_one_block(documents)
     # print(terms_max(reversed_index))
-    #documents = extract_documents_CS276(0)
-    #reversed_index, _ = construction_index_one_block(documents)
-    print(give_title(boolean_search('Subtractions and Digital', reversed_index), dic_doc))
+
 
     # Map Reduce Construction
     # inverted_index,_= Map_Reduced_Index(documents)
@@ -265,9 +226,9 @@ cProfile.run("reversed_index,_ = construction_index_one_block(documents)")
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
         1    0.012    0.012    7.371    7.371 <string>:1(<module>)
-        1    1.433    1.433    7.298    7.298 partie_2.py:19(create_posting_list)
-   107508    0.011    0.000    0.011    0.000 partie_2.py:37(<lambda>)
-        1    0.061    0.061    7.359    7.359 partie_2.py:40(construction_index_one_block)
+        1    1.433    1.433    7.298    7.298 III_Index_Inverse.py:19(create_posting_list)
+   107508    0.011    0.000    0.011    0.000 III_Index_Inverse.py:37(<lambda>)
+        1    0.061    0.061    7.359    7.359 III_Index_Inverse.py:40(construction_index_one_block)
    208440    2.994    0.000    5.739    0.000 snowball.py:1197(stem)
    150848    0.328    0.000    0.364    0.000 snowball.py:213(_r1r2_standard)
     29074    0.022    0.000    0.025    0.000 util.py:8(suffix_replace)
@@ -290,14 +251,14 @@ cProfile.run("inverted_index,_= Map_Reduced_Index(documents)")
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
         1    0.010    0.010    8.388    8.388 <string>:1(<module>)
-   107508    0.167    0.000    0.167    0.000 partie_2.py:148(create_reversed_index)
-     3203    0.001    0.000    0.002    0.000 partie_2.py:163(concat_dict)
-        1    0.006    0.006    8.378    8.378 partie_2.py:168(Map_Reduced_Index)
-     3204    0.001    0.000    0.001    0.000 partie_2.py:169(<lambda>)
-     3204    0.114    0.000    6.608    0.002 partie_2.py:172(<lambda>)
-   107508    0.092    0.000    4.985    0.000 partie_2.py:173(<lambda>)
-   208440    1.467    0.000    1.509    0.000 partie_2.py:174(<lambda>)
-     3203    0.806    0.000    0.806    0.000 partie_2.py:177(<lambda>)
+   107508    0.167    0.000    0.167    0.000 III_Index_Inverse.py:148(create_reversed_index)
+     3203    0.001    0.000    0.002    0.000 III_Index_Inverse.py:163(concat_dict)
+        1    0.006    0.006    8.378    8.378 III_Index_Inverse.py:168(Map_Reduced_Index)
+     3204    0.001    0.000    0.001    0.000 III_Index_Inverse.py:169(<lambda>)
+     3204    0.114    0.000    6.608    0.002 III_Index_Inverse.py:172(<lambda>)
+   107508    0.092    0.000    4.985    0.000 III_Index_Inverse.py:173(<lambda>)
+   208440    1.467    0.000    1.509    0.000 III_Index_Inverse.py:174(<lambda>)
+     3203    0.806    0.000    0.806    0.000 III_Index_Inverse.py:177(<lambda>)
    107508    2.553    0.000    4.893    0.000 snowball.py:1197(stem)
    105897    0.302    0.000    0.333    0.000 snowball.py:213(_r1r2_standard)
     28594    0.021    0.000    0.024    0.000 util.py:8(suffix_replace)

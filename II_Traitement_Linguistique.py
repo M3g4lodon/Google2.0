@@ -2,7 +2,7 @@ import math
 from nltk.stem.snowball import SnowballStemmer
 import matplotlib.pyplot as plt
 
-from import_data import *
+from I_Importation_Donnees import *
 
 stemmer = SnowballStemmer("english")
 COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)

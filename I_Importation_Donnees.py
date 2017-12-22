@@ -173,10 +173,10 @@ if __name__ == "__main__":
         4    0.000    0.000    0.000    0.000 enum.py:265(__call__)
         4    0.000    0.000    0.000    0.000 enum.py:515(__new__)
         2    0.000    0.000    0.000    0.000 enum.py:801(__and__)
-     9507    0.003    0.000    0.006    0.000 import_data.py:136(<lambda>)
-     3204    0.005    0.000    0.005    0.000 import_data.py:14(__init__)
-        1    0.000    0.000    0.014    0.014 import_data.py:70(read_to_list)
-        1    0.103    0.103    0.316    0.316 import_data.py:82(extract_documents_CACM)
+     9507    0.003    0.000    0.006    0.000 I_Importation_Donnees.py:136(<lambda>)
+     3204    0.005    0.000    0.005    0.000 I_Importation_Donnees.py:14(__init__)
+        1    0.000    0.000    0.014    0.014 I_Importation_Donnees.py:70(read_to_list)
+        1    0.103    0.103    0.316    0.316 I_Importation_Donnees.py:82(extract_documents_CACM)
     25793    0.015    0.000    0.163    0.000 re.py:204(split)
     25793    0.012    0.000    0.012    0.000 re.py:286(_compile)
         2    0.000    0.000    0.000    0.000 sre_compile.py:223(_compile_charset)
@@ -241,8 +241,8 @@ if __name__ == "__main__":
     98998    0.411    0.000    1.263    0.000 _bootlocale.py:11(getpreferredencoding)
     98998    0.169    0.000    0.169    0.000 codecs.py:259(__init__)
     98998    0.278    0.000    1.383    0.000 cp1252.py:22(decode)
-    98998    1.024    0.000    1.024    0.000 import_data.py:14(__init__)
-        1    2.316    2.316  775.998  775.998 import_data.py:39(extract_documents_CS276)
+    98998    1.024    0.000    1.024    0.000 I_Importation_Donnees.py:14(__init__)
+        1    2.316    2.316  775.998  775.998 I_Importation_Donnees.py:39(extract_documents_CS276)
     98998    1.105    0.000    1.105    0.000 {built-in method _codecs.charmap_decode}
     98998    0.852    0.000    0.852    0.000 {built-in method _locale._getdefaultlocale}
         1    0.000    0.000  775.998  775.998 {built-in method builtins.exec}
