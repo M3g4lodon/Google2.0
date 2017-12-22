@@ -23,7 +23,7 @@ def question_1(collection):
 
 
 # Answer [CACM] 107508 tokens (sans stemmer)
-# Answer [CS276] 17803941 tokens
+# Answer [CS276] 17,803,941 tokens
 
 def question_2(collection):
     nb_token = 0
