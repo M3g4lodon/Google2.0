@@ -4,4 +4,3 @@ from III_Index_Inverse import *
 from IV_Recherches import *
 
 if __name__ == "__main__":
-

@@ -1,7 +1,8 @@
 from collections import OrderedDict
-from functools import reduce
-from nltk.stem.snowball import SnowballStemmer
+from functools import reduce, partial
 import json
+from concurrent.futures import ProcessPoolExecutor as c_pool
+from nltk.stem.snowball import SnowballStemmer
 
 from I_Importation_Donnees import *
 
@@ -55,41 +56,45 @@ def construction_index_one_block(collection):
 
 def write_in_buffer(block_index, reversed_index, dic_documents):
     # Write Reversed Index
-    file = open(os.getcwd() + "/Buffer/" + "ReversedIndex_" + str(block_index), "w")
+    file = open(os.getcwd() + "/Buffer/Buffer/" + "ReversedIndex_" + str(block_index) + ".json", "w")
     json.dump(reversed_index, file)
     file.close()
 
     # Write Documents Dictionnary
-    file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_" + str(block_index), "w")
+    file = open(os.getcwd() + "/Buffer/Buffer/" + "Dict_Documents_" + str(block_index) + ".json", "w")
     json.dump(dic_documents, file)
     file.close()
 
 
 def read_in_buffer(block_index):
     # Read Reversed Index
-    file = open(os.getcwd() + "/Buffer/" + "ReversedIndex_" + str(block_index), "r")
+    file = open(os.getcwd() + "/Buffer/Buffer/" + "ReversedIndex_" + str(block_index) + ".json", "r")
     reversed_index = OrderedDict(json.load(file))
     file.close()
 
     # Read Dictionnary of documents
-    file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_" + str(block_index), "r")
+    file = open(os.getcwd() + "/Buffer/Buffer/" + "Dict_Documents_" + str(block_index) + ".json", "r")
     dic_documents = json.load(file)
     file.close()
     return reversed_index, dic_documents
+
+def process_block(i,block_nb):
+    # Read a block
+    block_documents = extract_documents_CS276(files_part(i, block_nb))
+    # Construct a block reversed index
+    block_index, dic_doc_block = construction_index_one_block(block_documents)
+    # Write the block reversed index on the disk
+    write_in_buffer(i, block_index, dic_doc_block)
 
 
 def BSBI_Index_construction_CS276():
     """CS276 only"""
     reversed_index = OrderedDict()
     dic_documents = {}
-    block_nb = 10
-    for i in range(block_nb):
-        # Read a block
-        block_documents = extract_documents_CS276(i)
-        # Construct a block reversed index
-        block_index, dic_doc_blocks = construction_index_one_block(block_documents)
-        # Write the block reversed index on the disk
-        write_in_buffer(i, block_index, dic_doc_blocks)
+    block_nb = 100
+
+    with c_pool() as p:
+        p.map(partial(process_block, block_nb=block_nb), range(block_nb))
 
     # Merge the block inversed indexes
     block_doc_to_doc = {}  # dictionnaire de passage
@@ -101,11 +106,11 @@ def BSBI_Index_construction_CS276():
         else:
             for doc_id_b in dic_doc_blocks:
                 if doc_id_b in dic_documents:
-                    new_id = max(dic_documents.keys()) + 1
+                    new_id = str(int(max(dic_documents.keys())) + 1)
                     dic_documents[new_id] = dic_doc_blocks[doc_id_b]
                     block_doc_to_doc[i][doc_id_b] = new_id
                 else:
-                    dic_documents[doc_id_b] = dic_documents[doc_id_b]
+                    dic_documents[doc_id_b] = dic_doc_blocks[doc_id_b]
         for term in reversed_index_block:
             reversed_index[term] = {}
             reversed_index[term]['idf'] = reversed_index_block[term]['idf']
@@ -116,6 +121,7 @@ def BSBI_Index_construction_CS276():
                 else:
                     doc_id = doc_id_b
                 reversed_index[term]['tf'][doc_id] = reversed_index_block[term]['tf'][doc_id_b]
+    reversed_index = OrderedDict(sorted(reversed_index.items(), key=lambda t: t[0]))
     return reversed_index, dic_documents
 
 
@@ -143,7 +149,7 @@ def concat_dict(x, y):
 
 
 def Map_Reduced_Index(collection):
-    pre_dic_documents = list(map(lambda doc: {doc.id: doc}, collection))
+    pre_dic_documents = list(map(lambda doc: {doc.id: doc.title}, collection))
     dic_documents = reduce(concat_dict, pre_dic_documents)
 
     pre_posting_list = list(map(lambda doc:
@@ -159,7 +165,6 @@ def Map_Reduced_Index(collection):
 ###############################################################################
 #                                      Tools
 
-
 def terms_max(reversed_index):
     trms_max = []
     max_idf = 0
@@ -173,40 +178,82 @@ def terms_max(reversed_index):
     return trms_max
 
 
+def update_CACM_index():
+    documents = extract_documents_CACM()
+    reversed_index, dic_document = Map_Reduced_Index(documents)
+
+    # Write Reversed Index
+    file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CACM.json", "w")
+    json.dump(reversed_index, file)
+    file.close()
+
+    # Write Documents Dictionnary
+    file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_CACM.json", "w")
+    json.dump(dic_document, file)
+    file.close()
+
+
+def read_CACM_index():
+    if not os.path.isfile(os.getcwd() + "/Buffer/" + "Reversed_Index_CACM.json"):
+        update_CACM_index()
+
+    # Read Reversed Index
+    file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CACM.json", "r")
+    reversed_index = OrderedDict(json.load(file))
+    file.close()
+
+    if not os.path.isfile(os.getcwd() + "/Buffer/" + "Dict_Documents_CACM.json"):
+        update_CACM_index()
+
+    # Read Dictionnary of documents
+    file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_CACM.json", "r")
+    dic_documents = json.load(file)
+    file.close()
+    return reversed_index, dic_documents
+
+
+def update_CS276_index():
+    reversed_index, dic_document = BSBI_Index_construction_CS276()
+
+    # Write Reversed Index
+    file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CS276.json", "w")
+    json.dump(reversed_index, file)
+    file.close()
+
+    # Write Documents Dictionnary
+    file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_CS276.json", "w")
+    json.dump(dic_document, file)
+    file.close()
+
+
+def read_CS276_index():
+    if not os.path.isfile(os.getcwd() + "/Buffer/" + "Reversed_Index_CS276.json"):
+        update_CS276_index()
+    # Read Reversed Index
+    file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CS276.json", "r")
+    reversed_index = OrderedDict(json.load(file))
+    file.close()
+
+    if not os.path.isfile(os.getcwd() + "/Buffer/" + "Dict_Documents_CS276.json"):
+        update_CS276_index()
+    # Read Dictionnary of documents
+    file = open(os.getcwd() + "/Buffer/" + "Dict_Documents_CS276.json", "r")
+    dic_documents = json.load(file)
+    file.close()
+    return reversed_index, dic_documents
+
 
 if __name__ == "__main__":
-    documents = extract_documents_CACM()
-    # documents = extract_documents_CS276()
 
     # Test Reverse Index
-    # print(reversed_index[stemmer.stem('system')]['tf'][92])  # Should be equal to 2
+    # print(reversed_index[stemmer.stem('system')]['tf'][92]==2)  # Should be equal to 2
 
-    # Test Write + Read in Buffer
-    reversed_index, index_document = construction_index_one_block(documents)
-    # print(reversed_index)
-    write_in_buffer(0, reversed_index, index_document)
-    RI1, ID1 = read_in_buffer(0)
-    # print(index_document)
-    # print(ID1)
-    # print(reversed_index == RI1)
-    # print(index_document == ID1)
+    # Update written indexes
+    update_CACM_index()
+    update_CS276_index()
 
-    # Index construction on CS276
-    # reversed_index_BSBI, _ = BSBI_Index_construction_CS276()
-    # documents = extract_documents_CS276(0)
-    # reversed_index, _ = construction_index_one_block(documents)
-    # print(terms_max(reversed_index))
+    # TODO test unitaire
 
-
-    # Map Reduce Construction
-    # inverted_index,_= Map_Reduced_Index(documents)
-    # cProfile.run("inverted_index,_= Map_Reduced_Index(documents)")
-
-
-    # TODO test unitaire,
-    # TODO stocker les résultats intermédiaires en mémoire,
-    # TODO multihtreader les blocs,
-    # TODO pouvoir avoir plus de 10 blocs
 
 """documents = extract_documents_CACM()
 
@@ -265,3 +312,19 @@ cProfile.run("inverted_index,_= Map_Reduced_Index(documents)")
    321803    0.098    0.000    0.098    0.000 {method 'startswith' of 'str' objects}
      3203    0.001    0.000    0.001    0.000 {method 'update' of 'dict' objects}
 """
+
+""" cProfile.run("test_mp()") # Multiprocessing
+
+2527 function calls (2496 primitive calls) in 372.860 seconds
+"""
+
+"""
+cProfile.run("test_conc()") # Concurrent
+5436 function calls (5416 primitive calls) in 330.018 seconds"""
+
+"""
+Temps d'éxécution en fonction du Nombre de blocs
+ 10     -->     407s
+ 100    -->     374s
+ 1000   -->     1742s
+ """

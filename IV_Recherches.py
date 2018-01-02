@@ -1,5 +1,6 @@
 from III_Index_Inverse  import *
 
+###################################################################
 def give_title(docID_list, dict_title):
     title_list = []
     for docID in docID_list:
@@ -47,6 +48,6 @@ def boolean_search(query, index):
 ##Pour le and --> il faut qu'il y ait les deux mots dans les documents !
 
 if __name__=="__main__":
-    documents = extract_documents_CACM()
-    reversed_index, dic_doc = construction_index_one_block(documents)
-    print(give_title(boolean_search('Subtractions and Digital', reversed_index), dic_doc))
+    reversed_index, dic_doc = read_CS276_index()
+
+    print(give_title(boolean_search('Stanford and Student', reversed_index), dic_doc))
