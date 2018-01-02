@@ -92,9 +92,9 @@ def BSBI_Index_construction_CS276():
     reversed_index = OrderedDict()
     dic_documents = {}
     block_nb = 100
-    """
+
     with c_pool() as p:
-        p.map(partial(process_block, block_nb=block_nb), range(block_nb))"""
+        p.map(partial(process_block, block_nb=block_nb), range(block_nb))
 
     # Merge the block inversed indexes
     block_doc_to_doc = {}  # table de correspondance entre les doc_id d'un bloc et le doc_id global
