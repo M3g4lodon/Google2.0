@@ -1,4 +1,5 @@
-from III_Index_Inverse  import *
+from III_Index_Inverse import *
+
 
 ###################################################################
 def give_title(docID_list, dict_title):
@@ -8,46 +9,40 @@ def give_title(docID_list, dict_title):
     return title_list
 
 
-def boolean_search(query, index):
+def boolean_search(query, index, dict_title):
     word_list_query = re.split("\W+|\d+", query)
     operator_list = ['and', 'or', 'not']
     i = 0
-    doc_set_and, doc_set_or, doc_set_not = set(), set(), set()
+    result = set()
     last_bool = 'or'
     while i < len(word_list_query):
         word = word_list_query[i].lower()
         if word in operator_list:
+            if i == 0:
+                result = set(dict_title.keys())
             if word == 'and':
                 last_bool = 'and'
-                i +=1
             elif word == 'or':
                 last_bool = 'or'
-                i += 1
-            else: #word == 'NOT':
+            else:  # word == 'NOT':
                 last_bool = 'not'
-                i += 1
         else:
             word = stemmer.stem(word)
+            subset=set(index[word]['tf'])
             if word in index:
                 if last_bool == 'and':
-                    for key in index[word]['tf']:
-                        doc_set_and.add(key)
+                    result = result.intersection(subset)
                 elif last_bool == 'or':
-                    for key in index[word]['tf']:
-                        doc_set_or.add(key)
+                    result = result.union(subset)
                 elif last_bool == 'not':
-                    for key in index[word]['tf']:
-                        doc_set_not.add(key)
-                else:
-                    raise EnvironmentError
-            i+=1
-    if doc_set_and == set():
-        return doc_set_or.difference(doc_set_not)
-    else:
-        return doc_set_and.intersection(doc_set_or).difference(doc_set_not)
+                    result = result.difference(subset)
+        i += 1
+
+    return result
+
+
 ##Pour le and --> il faut qu'il y ait les deux mots dans les documents !
 
-if __name__=="__main__":
+if __name__ == "__main__":
     reversed_index, dic_doc = read_CS276_index()
-
-    print(give_title(boolean_search('Stanford and Student', reversed_index), dic_doc))
+    print(len(give_title(boolean_search('not Stanford', reversed_index, dic_doc), dic_doc)))

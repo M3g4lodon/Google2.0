@@ -42,15 +42,15 @@ def create_posting_list(collection):
 def construction_index_one_block(collection):
     posting_list, dic_documents = create_posting_list(collection)
     reversed_index = OrderedDict()
-    for term, doc_ID in posting_list:
+    for term, doc_id in posting_list:
         if term in reversed_index:
-            if doc_ID in reversed_index[term]['tf']:
-                reversed_index[term]['tf'][doc_ID] += 1
+            if doc_id in reversed_index[term]['tf']:
+                reversed_index[term]['tf'][doc_id] += 1
             else:
-                reversed_index[term]['tf'][doc_ID] = 1
+                reversed_index[term]['tf'][doc_id] = 1
                 reversed_index[term]['idf'] += 1
         else:
-            reversed_index[term] = {'idf': 1, 'tf': {doc_ID: 1}}
+            reversed_index[term] = {'idf': 1, 'tf': {doc_id: 1}}
     return reversed_index, dic_documents
 
 
@@ -92,35 +92,44 @@ def BSBI_Index_construction_CS276():
     reversed_index = OrderedDict()
     dic_documents = {}
     block_nb = 100
-
+    """
     with c_pool() as p:
-        p.map(partial(process_block, block_nb=block_nb), range(block_nb))
+        p.map(partial(process_block, block_nb=block_nb), range(block_nb))"""
 
     # Merge the block inversed indexes
-    block_doc_to_doc = {}  # dictionnaire de passage
+    block_doc_to_doc = {}  # table de correspondance entre les doc_id d'un bloc et le doc_id global
     for i in range(block_nb):
-        reversed_index_block, dic_doc_blocks = read_in_buffer(i)
+        reversed_index_block, dic_doc_block = read_in_buffer(i)
         block_doc_to_doc[i] = {}
         if not dic_documents:  # If it's empty
-            dic_documents = dic_doc_blocks
+            dic_documents = dict(dic_doc_block)
         else:
-            for doc_id_b in dic_doc_blocks:
+            for doc_id_b in dic_doc_block:
                 if doc_id_b in dic_documents:
-                    new_id = str(int(max(dic_documents.keys())) + 1)
-                    dic_documents[new_id] = dic_doc_blocks[doc_id_b]
+                    new_id = str(len(dic_documents) + 1)
+                    dic_documents[new_id] = dic_doc_block[doc_id_b]
                     block_doc_to_doc[i][doc_id_b] = new_id
                 else:
-                    dic_documents[doc_id_b] = dic_doc_blocks[doc_id_b]
+                    dic_documents[doc_id_b] = dic_doc_block[doc_id_b]
         for term in reversed_index_block:
-            reversed_index[term] = {}
-            reversed_index[term]['idf'] = reversed_index_block[term]['idf']
-            reversed_index[term]['tf'] = {}
-            for doc_id_b in reversed_index_block[term]['tf']:
-                if doc_id_b in block_doc_to_doc[i]:
-                    doc_id = block_doc_to_doc[i][doc_id_b]
-                else:
-                    doc_id = doc_id_b
-                reversed_index[term]['tf'][doc_id] = reversed_index_block[term]['tf'][doc_id_b]
+            if term in reversed_index:
+                reversed_index[term]['idf'] += reversed_index_block[term]['idf']
+                for doc_id_b in reversed_index_block[term]['tf']:
+                    if doc_id_b in block_doc_to_doc[i]:
+                        doc_id = block_doc_to_doc[i][doc_id_b]
+                    else:
+                        doc_id = doc_id_b
+                    reversed_index[term]['tf'][doc_id] = reversed_index_block[term]['tf'][doc_id_b]
+            else:
+                reversed_index[term] = {}
+                reversed_index[term]['idf'] = reversed_index_block[term]['idf']
+                reversed_index[term]['tf'] = {}
+                for doc_id_b in reversed_index_block[term]['tf']:
+                    if doc_id_b in block_doc_to_doc[i]:
+                        doc_id = block_doc_to_doc[i][doc_id_b]
+                    else:
+                        doc_id = doc_id_b
+                    reversed_index[term]['tf'][doc_id] = reversed_index_block[term]['tf'][doc_id_b]
     reversed_index = OrderedDict(sorted(reversed_index.items(), key=lambda t: t[0]))
     return reversed_index, dic_documents
 
@@ -166,15 +175,17 @@ def Map_Reduced_Index(collection):
 #                                      Tools
 
 def terms_max(reversed_index):
-    trms_max = []
-    max_idf = 0
+    term_nb=10
+    trms_max = list(reversed_index.keys[:term_nb])
+    threshold = min([reversed_index[term]['idf'] for term in trms_max])
     for term in reversed_index:
-        if max_idf < reversed_index[term]['idf']:
-            trms_max = [term]
-            max_idf = reversed_index[term]['idf']
-        elif max_idf == reversed_index[term]['idf']:
-            trms_max.append(term)
-
+        cur_idf=reversed_index[term]['idf']
+        if threshold < cur_idf:
+            new_pos=0
+            while reversed_index[trms_max[new_pos]]>cur_idf:
+                new_pos+=1
+            trms_max.insert(new_pos,term)
+            trms_max.remove(trms_max[-1])
     return trms_max
 
 
@@ -245,14 +256,9 @@ def read_CS276_index():
 
 if __name__ == "__main__":
 
-    # Test Reverse Index
-    # print(reversed_index[stemmer.stem('system')]['tf'][92]==2)  # Should be equal to 2
-
     # Update written indexes
     update_CACM_index()
     update_CS276_index()
-
-    # TODO test unitaire
 
 
 """documents = extract_documents_CACM()

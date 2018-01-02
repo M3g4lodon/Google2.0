@@ -2,7 +2,6 @@ import os
 import re
 from itertools import islice
 
-
 script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
 cacm_relative_location = "/Data/CACM/cacm.all"
@@ -26,30 +25,32 @@ class Document:
 
     def __repr__(self):
 
-        res="Document id : "+str(self.id)+"\n"
+        res = "Document id : " + str(self.id) + "\n"
         if self.title is not None:
-            res+="Document title : "+str(self.title)+"\n"
+            res += "Document title : " + str(self.title) + "\n"
         if self.summary is not None:
-            res+="Document summary : "+str(self.summary)+"\n"
+            res += "Document summary : " + str(self.summary) + "\n"
         if self.keywords:
-            res+="Document keywords : "+str(self.keywords)+"\n"
+            res += "Document keywords : " + str(self.keywords) + "\n"
         if self.word_lists:
-            res+="List of words of the document : "+str(self.word_lists)
+            res += "List of words of the document : " + str(self.word_lists)
         return res
+
 
 def files_location_CS276():
     """Return all the files locations of CS276 collections"""
-    files_set=set()
+    files_set = set()
     for folder in cs276_relative_location:
-        for file_name in os.listdir(script_dir +folder):
-            files_set.add((script_dir +folder+ '/' + file_name))
+        for file_name in os.listdir(script_dir + folder):
+            files_set.add((script_dir + folder + '/' + file_name))
     return files_set
 
-def files_part(i,n):
+
+def files_part(i, n):
     """Return the ith part of the files set sliced in n parts"""
-    files_set =files_location_CS276()
-    files_nb=len(files_set)
-    return islice(files_set,i*files_nb//n,(i+1)*files_nb//n,1)
+    files_set = files_location_CS276()
+    files_nb = len(files_set)
+    return islice(files_set, i * files_nb // n, (i + 1) * files_nb // n, 1)
 
 
 def extract_documents_CS276(files_location=None):
@@ -69,8 +70,8 @@ def extract_documents_CS276(files_location=None):
 
     else:
         for file_location in files_location:
-            file =open(file_location,'r')
-            res=file.read()
+            file = open(file_location, 'r')
+            res = file.read()
             file.close()
             doc = Document()
             doc.title = file_location.split('/')[-1]
@@ -98,7 +99,7 @@ def extract_documents_CACM():
     :return: list of documents CACM
     """
     input_data = read_to_list(script_dir + cacm_relative_location)
-    collections = []
+    collections = set()
     # Transforme une liste en itérable,
     # next passe à l'élément suivant de la liste,
     # si c'est la fin ca raise l'exception StopIteration
@@ -111,7 +112,7 @@ def extract_documents_CACM():
             if line[:2] == ".I":
                 # Cas particulier de la première itération
                 if 'doc' in dir():
-                    collections.append(doc)
+                    collections.add(doc)
                 # Nouveau document à rajouter
                 doc_id = int(line[2:])
                 doc = Document(doc_id)
@@ -155,23 +156,24 @@ def extract_documents_CACM():
                 line = next(iter_lines)
     except StopIteration:
         # On rajoute dernier document à la 'main'
-        collections.append(doc)
+        collections.add(doc)
 
     return collections
+
 
 # TODO collection set pour CACM
 
 if __name__ == "__main__":
-    #import cProfile
-    #cProfile.run("CACM_documents = extract_documents_CACM()")
+    # import cProfile
+    # cProfile.run("CACM_documents = extract_documents_CACM()")
     # CACM_documents = extract_documents_CACM()
     # print(CACM_documents[2000].__dict__)
     # CS276_documents = extract_documents_CS276()
     # print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)
-    #CS276_documents = extract_documents_CS276(1)
+    # CS276_documents = extract_documents_CS276(1)
     # print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)
     print(files_location_CS276())
-    print(extract_documents_CS276(file_location="C:\\Users\\Mathieu\\Desktop\\3eme Année\\OSY\\9. Recherche d'information sur le Web\\Projets\\Google2.0/Data/CS276/0/brownlab.stanford.edu_Alumni_Sean_Bohen.html"))
+    print(extract_documents_CS276(file_location=["C:\\Users\\Mathieu\\Desktop\\3eme Année\\OSY\\9. Recherche d'information sur le Web\\Projets\\Google2.0/Data/CS276/0/brownlab.stanford.edu_Alumni_Sean_Bohen.html"]))
 
 """cProfile.run("CACM_documents = extract_documents_CACM()")
 

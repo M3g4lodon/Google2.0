@@ -122,11 +122,12 @@ def question_5(collection):
 
 
 if __name__ == "__main__":
-    documents = extract_documents_CACM()
-    # documents = extract_documents_CS276()
+    # documents = extract_documents_CACM()
+    documents = extract_documents_CS276()
+    print(len(documents))
     # print(question_1(documents))
     # print(question_2(documents))
     # print(question_2_half(documents))
     # print(question_3(documents))
     # print(question_4(documents))
-    question_5(documents)
+    # question_5(documents)
