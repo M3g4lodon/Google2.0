@@ -5,6 +5,7 @@ from concurrent.futures import ProcessPoolExecutor as c_pool
 from nltk.stem.snowball import SnowballStemmer
 
 from I_Importation_Donnees import *
+from III_bis_Classes import InvertedIndex, DocumentDict
 
 stemmer = SnowballStemmer("english")
 COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
@@ -19,22 +20,13 @@ COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
 #                           Block Sorted Based Index
 
 def create_posting_list(collection):
-    dic_terms = {}
     dic_documents = {}
     posting_list = []
-    j = 1  # identifiant de terme
     for doc in collection:
         dic_documents[doc.id] = doc.title  # on remplit le dictionnaire de documents
         for word in doc.word_lists:
-            stemmed_word = stemmer.stem(word)
             if word.lower() not in COMMON_WORDS:
-                if stemmed_word not in dic_terms:
-                    dic_terms[stemmed_word] = j
-                    posting_list += [
-                        (stemmed_word, doc.id)]  # on construit la posting list avec les termes et pas leur ID
-                    j += 1
-                else:  # on prend en compte les différentes occurrences
-                    posting_list += [(stemmed_word, doc.id)]
+                posting_list += [(stemmer.stem(word), doc.id)]
 
     return sorted(posting_list, key=lambda x: x[0]), dic_documents
 
@@ -78,7 +70,8 @@ def read_in_buffer(block_index):
     file.close()
     return reversed_index, dic_documents
 
-def process_block(i,block_nb):
+
+def process_block(i, block_nb):
     # Read a block
     block_documents = extract_documents_CS276(files_part(i, block_nb))
     # Construct a block reversed index
@@ -175,23 +168,24 @@ def Map_Reduced_Index(collection):
 #                                      Tools
 
 def terms_max(reversed_index):
-    term_nb=10
-    trms_max = list(reversed_index.keys[:term_nb])
+    term_nb = 10
+    trms_max = list(reversed_index.keys())[:term_nb]
     threshold = min([reversed_index[term]['idf'] for term in trms_max])
     for term in reversed_index:
-        cur_idf=reversed_index[term]['idf']
+        cur_idf = reversed_index[term]['idf']
         if threshold < cur_idf:
-            new_pos=0
-            while reversed_index[trms_max[new_pos]]>cur_idf:
-                new_pos+=1
-            trms_max.insert(new_pos,term)
+            new_pos = 0
+            while reversed_index[trms_max[new_pos]]['idf'] > cur_idf:
+                new_pos += 1
+            trms_max.insert(new_pos, term)
             trms_max.remove(trms_max[-1])
+            threshold = min([reversed_index[term]['idf'] for term in trms_max])
     return trms_max
 
 
 def update_CACM_index():
     documents = extract_documents_CACM()
-    reversed_index, dic_document = Map_Reduced_Index(documents)
+    reversed_index, dic_document = construction_index_one_block(documents)
 
     # Write Reversed Index
     file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CACM.json", "w")
@@ -210,7 +204,7 @@ def read_CACM_index():
 
     # Read Reversed Index
     file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CACM.json", "r")
-    reversed_index = OrderedDict(json.load(file))
+    reversed_index = InvertedIndex(json.load(file))
     file.close()
 
     if not os.path.isfile(os.getcwd() + "/Buffer/" + "Dict_Documents_CACM.json"):
@@ -242,7 +236,7 @@ def read_CS276_index():
         update_CS276_index()
     # Read Reversed Index
     file = open(os.getcwd() + "/Buffer/" + "Reversed_Index_CS276.json", "r")
-    reversed_index = OrderedDict(json.load(file))
+    reversed_index = InvertedIndex(json.load(file))
     file.close()
 
     if not os.path.isfile(os.getcwd() + "/Buffer/" + "Dict_Documents_CS276.json"):
@@ -255,11 +249,14 @@ def read_CS276_index():
 
 
 if __name__ == "__main__":
-
     # Update written indexes
-    update_CACM_index()
-    update_CS276_index()
+    # update_CACM_index()
+    # update_CS276_index()
+    reversed_index, _ = read_CACM_index()
+    print("Top 10 CACM : ", terms_max(reversed_index))
 
+    reversed_index, _ = read_CS276_index()
+    print("Top 10 CS276 : ", terms_max(reversed_index))
 
 """documents = extract_documents_CACM()
 
@@ -334,3 +331,8 @@ Temps d'éxécution en fonction du Nombre de blocs
  100    -->     374s
  1000   -->     1742s
  """
+
+"""test document read as yield or set on CS276 full inverted index creation
+yield -->   532s
+set   -->   461s
+"""

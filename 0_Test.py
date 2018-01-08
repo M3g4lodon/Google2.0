@@ -4,12 +4,14 @@ import os
 from nltk.stem.snowball import SnowballStemmer
 
 from I_Importation_Donnees import *
+from III_bis_Classes import InvertedIndex, DocumentDict
 from III_Index_Inverse import *
 from IV_Recherches import *
 
 stemmer = SnowballStemmer("english")
 
-nb_docs_CS276 = 98998
+NB_DOCS_CS276 = 98998
+NB_DOCS_CACM = 3204
 
 
 class ReadDocuments(unittest.TestCase):
@@ -18,9 +20,8 @@ class ReadDocuments(unittest.TestCase):
         self.assertEqual(len(docs), 3204)
 
     def test_read_a_document(self):
-        docs = extract_documents_CS276(
-            files_location=[os.getcwd() + "/Data/CS276/5/simula.stanford.edu_sedcl_people.html"])
-        doc = docs.pop()
+        doc = extract_documents_CS276(
+            files_location=[os.getcwd() + "/Data/CS276/5/simula.stanford.edu_sedcl_people.html"]).pop()
         self.assertEqual(doc.title, "simula.stanford.edu_sedcl_people.html")
         self.assertEqual(doc.word_lists, ['stanford',
                                           'experimental',
@@ -109,6 +110,7 @@ class ReadDocuments(unittest.TestCase):
                                           'laboratory'])
 
 
+
 class InvertedIndex(unittest.TestCase):
     def test_CACM(self):
         """Test index construction with one block"""
@@ -119,7 +121,7 @@ class InvertedIndex(unittest.TestCase):
     def test_CS276(self):
         """Test BSBI result"""
         reversed_index, dic_doc = read_CS276_index()
-        self.assertEqual(len(dic_doc), nb_docs_CS276)
+        self.assertEqual(len(dic_doc), NB_DOCS_CS276)
         self.assertEqual(reversed_index['stanford']['idf'], len(reversed_index['stanford']['tf']))
 
 
@@ -131,8 +133,18 @@ class Queries(unittest.TestCase):
         self.assertEqual(
             len(boolean_search('Stanford', reversed_index, dic_doc)) + len(
                 boolean_search('not Stanford', reversed_index, dic_doc)),
-            nb_docs_CS276)
+            NB_DOCS_CS276)
         self.assertEqual(len(boolean_search('Student not Student', reversed_index, dic_doc)), 0)
+
+    def test_boolean_search_CACM(self):
+        reversed_index, dic_doc = read_CACM_index()
+        self.assertEqual(len(reversed_index['system']['tf']),
+                         len(boolean_search('System', reversed_index, dic_doc)))
+        self.assertEqual(
+            len(boolean_search('system', reversed_index, dic_doc)) + len(
+                boolean_search('not System', reversed_index, dic_doc)),
+            NB_DOCS_CACM)
+        self.assertEqual(len(boolean_search('Programming not Programming', reversed_index, dic_doc)), 0)
 
 
 if __name__ == '__main__':

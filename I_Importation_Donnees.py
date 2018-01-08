@@ -161,17 +161,7 @@ def extract_documents_CACM():
     return collections
 
 
-# TODO collection set pour CACM
-
 if __name__ == "__main__":
-    # import cProfile
-    # cProfile.run("CACM_documents = extract_documents_CACM()")
-    # CACM_documents = extract_documents_CACM()
-    # print(CACM_documents[2000].__dict__)
-    # CS276_documents = extract_documents_CS276()
-    # print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)
-    # CS276_documents = extract_documents_CS276(1)
-    # print(CS276_documents.pop().__dict__, CS276_documents.pop().__dict__)
     print(files_location_CS276())
     print(extract_documents_CS276(file_location=["C:\\Users\\Mathieu\\Desktop\\3eme Année\\OSY\\9. Recherche d'information sur le Web\\Projets\\Google2.0/Data/CS276/0/brownlab.stanford.edu_Alumni_Sean_Bohen.html"]))
 
