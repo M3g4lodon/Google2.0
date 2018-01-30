@@ -1,14 +1,17 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import reduce, partial
 import json
 from concurrent.futures import ProcessPoolExecutor as c_pool
 from nltk.stem.snowball import SnowballStemmer
+from math import log
+from math import sqrt
 
 from I_Importation_Donnees import *
 from III_bis_Classes import InvertedIndex, DocumentDict
 
 stemmer = SnowballStemmer("english")
-COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+#COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+COMMON_WORDS = set(stemmer.stem(word) for word in read_to_list(script_dir + common_words_relative_location))
 
 
 ###############################################################################
@@ -25,8 +28,9 @@ def create_posting_list(collection):
     for doc in collection:
         dic_documents[doc.id] = doc.title  # on remplit le dictionnaire de documents
         for word in doc.word_lists:
-            if word.lower() not in COMMON_WORDS:
-                posting_list += [(stemmer.stem(word), doc.id)]
+            stemmed_word = stemmer.stem(word)
+            if stemmed_word not in COMMON_WORDS:
+                posting_list += [(stemmed_word, doc.id)]
 
     return sorted(posting_list, key=lambda x: x[0]), dic_documents
 
@@ -37,13 +41,27 @@ def construction_index_one_block(collection):
     for term, doc_id in posting_list:
         if term in reversed_index:
             if doc_id in reversed_index[term]['tf']:
-                reversed_index[term]['tf'][doc_id] += 1
+                reversed_index[term]['tf'][doc_id] += 1  # le tf du terme est sa fréquence par document
             else:
                 reversed_index[term]['tf'][doc_id] = 1
-                reversed_index[term]['idf'] += 1
+                reversed_index[term]['idf'] += 1  # il s'agit du nombre de documents dans lequel le terme est présent
         else:
             reversed_index[term] = {'idf': 1, 'tf': {doc_id: 1}}
     return reversed_index, dic_documents
+
+
+def construction_index_query(query):
+    word_list_query = re.split("\W+|\d+", query)
+    # ajouter le traitement stemming !!!!
+    reversed_index = {}
+    for term in word_list_query:
+        if term.lower() not in COMMON_WORDS:
+            stemmed_term = stemmer.stem(term)
+            if stemmed_term in reversed_index:
+                reversed_index[stemmed_term]['tf'] += 1  # occurence du terme dans la query
+            else:
+                reversed_index[stemmed_term] = {'idf': 1, 'tf': 1}
+    return reversed_index
 
 
 def write_in_buffer(block_index, reversed_index, dic_documents):
@@ -250,13 +268,18 @@ def read_CS276_index():
 
 if __name__ == "__main__":
     # Update written indexes
-    # update_CACM_index()
+    update_CACM_index()
     # update_CS276_index()
-    reversed_index, _ = read_CACM_index()
-    print("Top 10 CACM : ", terms_max(reversed_index))
+    reversed_index, dic_documents = read_CACM_index()
+    # print("Top 10 CACM : ", terms_max(reversed_index))
 
-    reversed_index, _ = read_CS276_index()
-    print("Top 10 CS276 : ", terms_max(reversed_index))
+    # reversed_index, _ = read_CS276_index()
+    # print("Top 10 CS276 : ", terms_max(reversed_index))
+
+
+
+
+
 
 """documents = extract_documents_CACM()
 
