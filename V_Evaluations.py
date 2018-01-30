@@ -1,6 +1,9 @@
 import timeit
 import sys
 import os
+import matplotlib.pyplot as plt
+import numpy as np
+
 from I_Importation_Donnees import *
 from II_Traitement_Linguistique import *
 from III_Index_Inverse import *
@@ -69,6 +72,69 @@ def occupation_espace_disque():
 # ==========================  Mesure de Pertinence  ========================= #
 ###############################################################################
 
+# Précision / Rappel
+def precision_rappel(search_function):
+    queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
+    doc_coll = extract_documents_CACM()
+    n_doc = len(doc_coll)
+    rev_ind, dic_doc = read_CACM_index()
+    recalls = []
+    precisions = []
+    for query in queries:
+        results = search_function(rev_ind, dic_doc, query, doc_coll)
+        qr_recall = []
+        qr_precision = []
+        nb_relevant_doc = len(query.linked_docs)
+        for k in range(1, n_doc + 1):
+            TP = len(set(results[:k]) & set(query.linked_docs))
+            qr_recall.append(TP / k)
+            qr_precision.append(TP / nb_relevant_doc)
+        i = n_doc - 2
+        while i >= 0:
+            if qr_precision[i + 1] > qr_precision[i]:
+                qr_precision[i] = qr_precision[i + 1]
+            i -= 1
+        recalls.append(qr_recall)
+        precisions.append(qr_precision)
+
+    # Moyenne recalls et précision
+    moy_recalls, moy_precisions = average_curve_Precision_Recall(recalls, precisions)
+
+    # Plot
+    for i in range(n_doc - 1):
+        plt.plot((moy_recalls[i], moy_recalls[i]), (moy_precisions[i], moy_precisions[i + 1]), 'k-', label='',
+                 color='red')  # vertical
+        plt.plot((moy_recalls[i], moy_recalls[i + 1]), (moy_precisions[i + 1], moy_precisions[i + 1]), 'k-', label='',
+                 color='red')  # horizontal
+    plt.xlabel("Précision")
+    plt.ylabel("Rappel")
+    plt.show()
+
+
+def average_curve_Precision_Recall(recalls, precisions):
+    recall_points = sorted(set(recall_point for recall_query in recalls for recall_point in recall_query) | {0})
+    precisions_points = [1]
+    n_queries = len(recalls)
+    current_indices = [0 for _ in range(n_queries)]
+    for recall_point in recall_points:
+        sum = 0
+        # Mise à jour des indices de lecture
+        for i in range(n_queries):
+            while recalls[i][current_indices[i] + 1] < recall_point and current_indices[i] < n_queries - 1:
+                current_indices[i] += 1
+            sum += precisions[i][current_indices[i]]
+
+        # Calcul de la moyenne
+        sum /= n_queries
+        precisions_points.append(sum)
+    return recall_points, precisions_points
+
+
+# F-measure, E-measure, R-measure
+
+
+# Mean-Average Precision
+
+
 if __name__ == "__main__":
-    print(temps_calcul_boolean_query())
-    occupation_espace_disque()
+    precision_rappel()

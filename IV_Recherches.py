@@ -5,7 +5,7 @@ from III_Index_Inverse import *
 from nltk.stem.snowball import SnowballStemmer
 
 stemmer = SnowballStemmer("english")
-COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+COMMON_WORDS = set( stemmer.stem(word) for word in read_to_list(script_dir + common_words_relative_location))
 
 
 ###################################################################
@@ -41,6 +41,18 @@ def boolean_search(query, index, dict_title):
                 elif last_bool == 'not':
                     result = result.difference(subset)
         i += 1
+    return result
+
+def boolean_search_for_evaluation(index,dict_title,query,doc_coll):
+    filtered_query=[stemmer.stem(word) for word in query.word_lists if stemmer.stem(word) not in COMMON_WORDS]
+    string_query=" and ".join(filtered_query)
+    retreived_doc_ids=boolean_search(string_query,index,dict_title)
+    not_retreived_do_ids= set(dict_title.keys()) - retreived_doc_ids
+    result=[]
+    for doc_id in retreived_doc_ids:
+        result.append((doc_id,1))
+    for doc_id in not_retreived_do_ids:
+        result.append((doc_id,0))
     return result
 
 
@@ -103,4 +115,4 @@ def vector_search(weight_function, query, index, dict_title):
 if __name__ == "__main__":
     reversed_index, dic_doc = read_CACM_index()
     #reversed_index, dic_doc = read_CS276_index()
-    print(give_title(boolean_search('computer not Stanford', reversed_index, dic_doc),dic_doc))
+    print(give_title(boolean_search('analysi', reversed_index, dic_doc),dic_doc))

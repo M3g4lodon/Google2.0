@@ -8,7 +8,7 @@ from I_Importation_Donnees import *
 from III_bis_Classes import InvertedIndex, DocumentDict
 
 stemmer = SnowballStemmer("english")
-COMMON_WORDS = read_to_list(script_dir + common_words_relative_location)
+COMMON_WORDS = set( stemmer.stem(word) for word in read_to_list(script_dir + common_words_relative_location))
 
 
 ###############################################################################
