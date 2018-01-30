@@ -19,6 +19,10 @@ class ReadDocuments(unittest.TestCase):
         docs = extract_documents_CACM()
         self.assertEqual(len(docs), 3204)
 
+    def test_CACM_number_queries(self):
+        queries = extract_queries_CACM()
+        self.assertEqual(len(queries), 64)
+
     def test_read_a_document(self):
         doc = extract_documents_CS276(
             files_location=[os.getcwd() + "/Data/CS276/5/simula.stanford.edu_sedcl_people.html"]).pop()
@@ -109,6 +113,10 @@ class ReadDocuments(unittest.TestCase):
                                           'center',
                                           'laboratory'])
 
+    def test_read_a_query(self):
+        queries = extract_queries_CACM()
+        query_5 = [qr for qr in queries if qr.id == 5][0]
+        self.assertEqual(query_5.linked_docs, [756, 1307, 1502, 2035, 2299, 2399, 2501, 2820])
 
 
 class InvertedIndex(unittest.TestCase):

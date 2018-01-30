@@ -4,7 +4,9 @@ from itertools import islice
 
 script_dir = os.getcwd()
 # donne la localisation actuelle de ton dossier projet
-cacm_relative_location = "/Data/CACM/cacm.all"
+CACM_ALL = "/Data/CACM/cacm.all"
+CACM_QUERIES = "/Data/CACM/query.text"
+CACM_QRELS = "/Data/CACM/qrels.text"
 cs276_relative_location = ["/Data/CS276/" + str(i) for i in range(10)]
 common_words_relative_location = "/Data/CACM/common_words"
 
@@ -22,18 +24,21 @@ class Document:
         self.summary = None  # .W
         self.keywords = list()  # .K
         self.word_lists = list()
+        self.linked_docs = list()  # Used for queries, filled with the good results (doc.id)
 
     def __repr__(self):
 
-        res = "Document id : " + str(self.id) + "\n"
+        res = "Id : " + str(self.id) + "\n"
         if self.title is not None:
-            res += "Document title : " + str(self.title) + "\n"
+            res += "Title : " + str(self.title) + "\n"
         if self.summary is not None:
-            res += "Document summary : " + str(self.summary) + "\n"
+            res += "Summary : " + str(self.summary) + "\n"
         if self.keywords:
-            res += "Document keywords : " + str(self.keywords) + "\n"
+            res += "Keywords : " + str(self.keywords) + "\n"
         if self.word_lists:
-            res += "List of words of the document : " + str(self.word_lists)
+            res += "Words  : " + str(self.word_lists) + "\n"
+        if self.linked_docs:
+            res += "Related Documents : " + str(self.linked_docs)
         return res
 
 
@@ -93,12 +98,12 @@ def read_to_list(file_location):
     return res
 
 
-def extract_documents_CACM():
+def read_CACM(file_path):
     """
     Read a file and create documents
     :return: list of documents CACM
     """
-    input_data = read_to_list(script_dir + cacm_relative_location)
+    input_data = read_to_list(script_dir + file_path)
     collections = set()
     # Transforme une liste en itérable,
     # next passe à l'élément suivant de la liste,
@@ -161,9 +166,24 @@ def extract_documents_CACM():
     return collections
 
 
+def extract_documents_CACM():
+    return read_CACM(CACM_ALL)
+
+
+def extract_queries_CACM():
+    queries_collection = read_CACM(CACM_QUERIES)
+    qrels = read_to_list(script_dir + CACM_QRELS)
+    if '' in qrels:
+        qrels.remove('')
+    for qrel in qrels:
+        query_id, doc_id = tuple(qrel.split(' ')[:2])
+        query = [qr for qr in queries_collection if qr.id == int(query_id)][0]
+        query.linked_docs.append(int(doc_id))
+    return queries_collection
+
+
 if __name__ == "__main__":
-    print(files_location_CS276())
-    print(extract_documents_CS276(file_location=["C:\\Users\\Mathieu\\Desktop\\3eme Année\\OSY\\9. Recherche d'information sur le Web\\Projets\\Google2.0/Data/CS276/0/brownlab.stanford.edu_Alumni_Sean_Bohen.html"]))
+    print([doc for doc in extract_queries_CACM()][0])
 
 """cProfile.run("CACM_documents = extract_documents_CACM()")
 

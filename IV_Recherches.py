@@ -102,6 +102,5 @@ def vector_search(weight_function, query, index, dict_title):
 
 if __name__ == "__main__":
     reversed_index, dic_doc = read_CACM_index()
-    reversed_index, dic_doc = read_CS276_index()
-
-    print(len(give_title(boolean_search('not Stanford', reversed_index, dic_doc), dic_doc)))
+    #reversed_index, dic_doc = read_CS276_index()
+    print(give_title(boolean_search('computer not Stanford', reversed_index, dic_doc),dic_doc))
