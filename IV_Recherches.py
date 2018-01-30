@@ -61,58 +61,91 @@ def extract_terms(query):
         yield stemmer.stem(word)
 
 
-def weight_tf_idf(term,query, inverted_index, nb_docs, doc_id="0"):
-    if term in inverted_index:
-        tf_td = reversed_index[term]['tf'][doc_id]
-        df_t = reversed_index[term]['idf']
-        return (1 + math.log(tf_td)) * math.log(nb_docs / df_t)
-    else:
-        return 0
+
+# def weight_freq_norm(term,query, inverted_index, nb_docs, doc_id="0"):
+#     if term in inverted_index:
+#         tf_td = reversed_index[term]['tf'][doc_id]
+#         max_tj=tf_td
+#
+#         for term_i in extract_terms(query):
+#             if term_i in reversed_index:
+#                 # TODO
+#                 pass
+#
+#     else:
+#         return 0
+#
+# # TODO recherche booléenne pour ne sélectionner que les documents ayant au moins un des termes de la requête
 
 
-def weight_tf_idf_norm(term,query, inverted_index, nb_docs, doc_id="0"):
-    if term in inverted_index:
-        tf_td = reversed_index[term]['tf'][doc_id]
-        df_t = reversed_index[term]['idf']
-        return (1 + math.log(tf_td)) * math.log(nb_docs / df_t)*norm
-    else:
-        return 0
-
-
-def weight_freq_norm(term,query, inverted_index, nb_docs, doc_id="0"):
-    if term in inverted_index:
-        tf_td = reversed_index[term]['tf'][doc_id]
-        max_tj=tf_td
-
-        for term_i in extract_terms(query):
-            if term_i in reversed_index:
-                # TODO
-                pass
-
-    else:
-        return 0
-
-
-def vector_search(weight_function, query, index, dict_title):
-    nb_docs = len(dict_title)
-    result = [0] * nb_docs
-    query_index = {}
-    for term in extract_terms(query):
-        if query_index[term]['tf']:
-            query_index[term]['tf']["0"] += 1
-        else:
-            query_index[term]['tf']["0"] = 1
-            query_index[term] = {'idf': 1}
-    # TODO recherche booléenne pour ne sélectionner que les documents ayant au moins un des termes de la requête
-
-    for term in extract_terms(query):
-        pass
-    return result
 
 
 ##Pour le and --> il faut qu'il y ait les deux mots dans les documents !
 
+
+
+def norm_factor(collection, doc_id):
+    norm_factor_doc = 0
+    doc_id = int(doc_id)
+    for doc in collection:
+        if doc.id == doc_id:
+            for word in doc.word_lists:
+                if word.lower() not in COMMON_WORDS:
+                    norm_factor_doc += 1
+            return norm_factor_doc
+
+
+def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, weight_tf_idf_doc):
+    N = len(dic_documents)  # nombre de documents dans la collection
+    nq = 0  # représente la somme des poids au carré des termes de la query par rapport au document query
+    nd = defaultdict(int)
+    s = []  # s est le vecteur similarité s[j] est la similarité du doc j avec la query, appelé aussi score
+    word_list_query = re.split("\W+|\d+", query)
+    reversed_index_query = construction_index_query(query)
+    for j in range(0, N+1):
+        s += [0]
+    for i in range(0, len(word_list_query)):  # on parcourt les mots de la query
+        term = stemmer.stem(word_list_query[i])
+        wq = weight_tf_idf_query(term, reversed_index_query, reversed_index, N)
+        nq += wq ** 2
+        for doc_id in reversed_index[term]['tf']:
+            wt = weight_tf_idf_doc(term, doc_id, reversed_index, N)
+            doc_id = int(doc_id)
+            nd[doc_id] += wt ** 2
+            s[doc_id] += wt * wq
+    for j in range(0, N+1):
+        if s[j] != 0:
+            s[j] = s[j] / (sqrt(nq)*sqrt(nd[j]))
+    return ordered_score(s)
+
+
+def ordered_score(s):
+    dict_scores = {}
+    for i in range(0,len(s)):
+        doc_id = i
+        score = s[i]
+        dict_scores[doc_id] = score
+    return sorted(dict_scores.items(), key=lambda x: -x[1])
+
+
+def weight_tf_idf_query1(term, reversed_index_query, reversed_index, nb_docs):
+    if term in reversed_index:  # si le terme n'est dans aucun document, on ne le considerera pas pour la suite
+        tf_td = reversed_index_query[term]['tf']
+        df_t = reversed_index[term]['idf']
+        return (1 + log(tf_td)) * log(nb_docs / df_t)
+    else:
+        return 0
+
+
+def weight_tf_idf_doc1(term, doc_id, reversed_index, nb_docs):
+    tf_td = reversed_index[term]['tf'][doc_id]
+    df_t = reversed_index[term]['idf']
+    return (1 + log(tf_td)) * log(nb_docs / df_t)
+
+
 if __name__ == "__main__":
     reversed_index, dic_doc = read_CACM_index()
     #reversed_index, dic_doc = read_CS276_index()
-    print(give_title(boolean_search('analysi', reversed_index, dic_doc),dic_doc))
+    #print(len(give_title(boolean_search('not Stanford', reversed_index, dic_doc), dic_doc)))
+    collection = extract_documents_CACM()
+    print(vectorial_search(reversed_index, dic_doc,"Systems in which variable time-lags are present are of common occurrence in biology.  Variable  flow rates are a common cause of these variable lags. At present no extensive body of knowledge exists  concerning the effects which these variable lags can cause.  Shown here is a method of reducing some  differential-difference equations to ordinary differential equations which can then be studied numerically  with ease.  Subsequent study will deal with situations in which multiple-lags and lags dependent on the  solution itself are present.",weight_tf_idf_query1, weight_tf_idf_doc1))
