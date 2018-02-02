@@ -96,36 +96,31 @@ def norm_factor(collection, doc_id):
 
 
 def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, weight_tf_idf_doc):
-    N = len(dic_documents)  # nombre de documents dans la collection
+    nb_docs = len(dic_documents)  # nombre de documents dans la collection
     nq = 0  # représente la somme des poids au carré des termes de la query par rapport au document query
-    nd = defaultdict(int)
-    s = []  # s est le vecteur similarité s[j] est la similarité du doc j avec la query, appelé aussi score
+    nd = defaultdict(int) # facteur de normalisation de chaque documents
+    # s est le vecteur similarité s[j] est la similarité du doc j avec la query,
+    # s est appelé aussi score
+    s = [0 for _ in range(nb_docs + 1)]
     word_list_query = re.split("\W+|\d+", query)
-    reversed_index_query = construction_index_query(query)
-    for j in range(0, N+1):
-        s += [0]
-    for i in range(0, len(word_list_query)):  # on parcourt les mots de la query
-        term = stemmer.stem(word_list_query[i])
-        wq = weight_tf_idf_query(term, reversed_index_query, reversed_index, N)
+    reversed_index_query = construction_index_query(query) # Index inversé sur la requête
+    for token in word_list_query:  # on parcourt les mots de la query
+        term = stemmer.stem(token)
+        wq = weight_tf_idf_query(term, reversed_index_query, reversed_index, nb_docs)
         nq += wq ** 2
         for doc_id in reversed_index[term]['tf']:
-            wt = weight_tf_idf_doc(term, doc_id, reversed_index, N)
+            wt = weight_tf_idf_doc(term, doc_id, reversed_index, nb_docs)
             doc_id = int(doc_id)
             nd[doc_id] += wt ** 2
             s[doc_id] += wt * wq
-    for j in range(0, N+1):
+    for j in range(nb_docs+1):
         if s[j] != 0:
             s[j] = s[j] / (sqrt(nq)*sqrt(nd[j]))
     return ordered_score(s)
 
 
 def ordered_score(s):
-    dict_scores = {}
-    for i in range(0,len(s)):
-        doc_id = i
-        score = s[i]
-        dict_scores[doc_id] = score
-    return sorted(dict_scores.items(), key=lambda x: -x[1])
+    return sorted(enumerate(s), key=lambda x: -x[1])
 
 
 def weight_tf_idf_query1(term, reversed_index_query, reversed_index, nb_docs):

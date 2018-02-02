@@ -183,7 +183,7 @@ def extract_queries_CACM():
 
 
 if __name__ == "__main__":
-    print([doc for doc in extract_queries_CACM()][0])
+    print(list(extract_queries_CACM())[0])
 
 """cProfile.run("CACM_documents = extract_documents_CACM()")
 

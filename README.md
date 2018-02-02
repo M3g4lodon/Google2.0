@@ -4,6 +4,12 @@ Prérequis :
 
 •	Cloner le repository : https://github.com/M3g4lodon/Google2.0
 
+•   Dans le dossier cloné, rajouter deux dossiers ./Buffer et ./Buffer/Buffer
+```bash
+mkdir Buffer
+cd Buffer
+mkdir Buffer
+```
 ============================================================================================================================
 Détails des différents dossiers:
 
