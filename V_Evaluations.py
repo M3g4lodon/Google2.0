@@ -3,6 +3,7 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from functools import partial
 
 from I_Importation_Donnees import *
 from II_Traitement_Linguistique import *
@@ -73,60 +74,80 @@ def occupation_espace_disque():
 ###############################################################################
 
 # Précision / Rappel
-def precision_rappel(search_function):
+
+def precision_rappel(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=False):
+    # Toutes les requêtes
     queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
+
+    # Collection des documents CACM
     doc_coll = extract_documents_CACM()
+
+    # Nombre de documents de la collection
     n_doc = len(doc_coll)
+
+    # Index inversé et dictionnaire des documents
     rev_ind, dic_doc = read_CACM_index()
-    recalls = []
-    precisions = []
+
+    # les couples de points rappel précision
+    recall_precision_queries = []
     for query in queries:
-        results = search_function(rev_ind, dic_doc, query, doc_coll)
-        qr_recall = []
-        qr_precision = []
+        results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        qr_points = []
         nb_relevant_doc = len(query.linked_docs)
         for k in range(1, n_doc + 1):
-            TP = len(set(results[:k]) & set(query.linked_docs))
-            qr_recall.append(TP / k)
-            qr_precision.append(TP / nb_relevant_doc)
+            n_true_positive = len(set(doc_id for doc_id, score in results[:k]) & set(query.linked_docs))
+            qr_points.append([(n_true_positive / k), (n_true_positive / nb_relevant_doc)])
+        qr_points.sort(key=lambda x: x[0])
         i = n_doc - 2
         while i >= 0:
-            if qr_precision[i + 1] > qr_precision[i]:
-                qr_precision[i] = qr_precision[i + 1]
+            if qr_points[i][1] < qr_points[i + 1][1]:
+                qr_points[i][1] = qr_points[i + 1][1]
             i -= 1
-        recalls.append(qr_recall)
-        precisions.append(qr_precision)
+
+        recall_precision_queries.append(qr_points)
 
     # Moyenne recalls et précision
-    moy_recalls, moy_precisions = average_curve_Precision_Recall(recalls, precisions)
+    recalls_precisions = average_curve_Precision_Recall(recall_precision_queries)
 
     # Plot
-    for i in range(n_doc - 1):
-        plt.plot((moy_recalls[i], moy_recalls[i]), (moy_precisions[i], moy_precisions[i + 1]), 'k-', label='',
-                 color='red')  # vertical
-        plt.plot((moy_recalls[i], moy_recalls[i + 1]), (moy_precisions[i + 1], moy_precisions[i + 1]), 'k-', label='',
-                 color='red')  # horizontal
-    plt.xlabel("Précision")
-    plt.ylabel("Rappel")
-    plt.show()
+    if print:
+        plt.plot(*recalls_precisions)
+        plt.xlabel("Rappel")
+        plt.ylabel("Précision")
+        plt.show()
+
+    return recalls_precisions
 
 
-def average_curve_Precision_Recall(recalls, precisions):
-    recall_points = sorted(set(recall_point for recall_query in recalls for recall_point in recall_query) | {0})
-    precisions_points = [1]
-    n_queries = len(recalls)
-    current_indices = [0 for _ in range(n_queries)]
+def average_curve_Precision_Recall(points):
+    # Liste ordonnée des rappels (abcisses) possibles sur lesquelles on veut retrouver leur précision
+    recall_points = sorted(set(recall_point for qr_point in points for recall_point, precision_point in qr_point))
+
+    # Liste des précisions à calculer
+    precisions_points = []
+
+    # Nombre de requêtes
+    n_queries = len(points)
+
+    # Indice des lecture des précisions pour chaque requête
+    precisions_current_indices = [0 for _ in range(n_queries)]
+
     for recall_point in recall_points:
         sum = 0
+
         # Mise à jour des indices de lecture
         for i in range(n_queries):
-            while recalls[i][current_indices[i] + 1] < recall_point and current_indices[i] < n_queries - 1:
-                current_indices[i] += 1
-            sum += precisions[i][current_indices[i]]
+            while points[i][precisions_current_indices[i] + 1][0] <= recall_point \
+                    and precisions_current_indices[i] < len(points[i]) - 2:
+                precisions_current_indices[i] += 1
+
+            # Somme la précision de chaque requête correspondante
+            sum += points[i][precisions_current_indices[i]][1]
 
         # Calcul de la moyenne
         sum /= n_queries
         precisions_points.append(sum)
+
     return recall_points, precisions_points
 
 
@@ -137,4 +158,4 @@ def average_curve_Precision_Recall(recalls, precisions):
 
 
 if __name__ == "__main__":
-    precision_rappel()
+    precision_rappel(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)

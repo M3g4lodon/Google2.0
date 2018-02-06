@@ -102,10 +102,9 @@ def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, 
     # s est le vecteur similarité s[j] est la similarité du doc j avec la query,
     # s est appelé aussi score
     s = [0 for _ in range(nb_docs + 1)]
-    word_list_query = re.split("\W+|\d+", query)
+    term_list_query = [stemmer.stem(word) for word in re.split("\W+|\d+", query) if stemmer.stem(word) not in COMMON_WORDS]
     reversed_index_query = construction_index_query(query) # Index inversé sur la requête
-    for token in word_list_query:  # on parcourt les mots de la query
-        term = stemmer.stem(token)
+    for term in term_list_query:  # on parcourt les mots de la query
         wq = weight_tf_idf_query(term, reversed_index_query, reversed_index, nb_docs)
         nq += wq ** 2
         for doc_id in reversed_index[term]['tf']:
@@ -143,4 +142,9 @@ if __name__ == "__main__":
     #reversed_index, dic_doc = read_CS276_index()
     #print(len(give_title(boolean_search('not Stanford', reversed_index, dic_doc), dic_doc)))
     collection = extract_documents_CACM()
-    print(vectorial_search(reversed_index, dic_doc,"Systems in which variable time-lags are present are of common occurrence in biology.  Variable  flow rates are a common cause of these variable lags. At present no extensive body of knowledge exists  concerning the effects which these variable lags can cause.  Shown here is a method of reducing some  differential-difference equations to ordinary differential equations which can then be studied numerically  with ease.  Subsequent study will deal with situations in which multiple-lags and lags dependent on the  solution itself are present.",weight_tf_idf_query1, weight_tf_idf_doc1))
+    query_40=""" List all articles dealing with data types in the following languages:
+Pascal, CLU, Alphard, Russell, Ada, ALGOL 68, EL1.  List any other languages
+that are referenced frequently in papers on the above languages (e.g. catch
+any languages with interesting type structures that I might have missed)."""
+    result=vectorial_search(reversed_index, dic_doc,query_40,weight_tf_idf_query1, weight_tf_idf_doc1)
+    print([res[0] for res in result[:10]])
