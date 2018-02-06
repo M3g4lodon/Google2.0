@@ -76,7 +76,15 @@ def occupation_espace_disque():
 # Précision / Rappel
 
 def precision_rappel(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=False):
-    # Toutes les requêtes
+    """ Calcule la courbe rappel-précision pour une fonction de recherche donnée sur nos requêtes
+
+    :param search_function: fonction de recherche à tester
+    :param weight_tf_idf_query: fonction de pondération de la requête
+    :param weight_tf_idf_doc: fonction de pondération de la collection de document
+    :param print: booléen pour afficher ou non la courbe rappel-précision
+    :return: les points de la courbe moyenne rappel-précision
+    """
+    # Toutes les requêtes avec au moins un document pertinent
     queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
 
     # Collection des documents CACM
@@ -90,12 +98,13 @@ def precision_rappel(search_function, weight_tf_idf_query, weight_tf_idf_doc, pr
 
     # les couples de points rappel précision
     recall_precision_queries = []
+
     for query in queries:
-        results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
         qr_points = []
         nb_relevant_doc = len(query.linked_docs)
         for k in range(1, n_doc + 1):
-            n_true_positive = len(set(doc_id for doc_id, score in results[:k]) & set(query.linked_docs))
+            n_true_positive = len(set(doc_id for doc_id, score in search_results[:k]) & set(query.linked_docs))
             qr_points.append([(n_true_positive / k), (n_true_positive / nb_relevant_doc)])
         qr_points.sort(key=lambda x: x[0])
         i = n_doc - 2
@@ -120,6 +129,11 @@ def precision_rappel(search_function, weight_tf_idf_query, weight_tf_idf_doc, pr
 
 
 def average_curve_Precision_Recall(points):
+    """ Calcule la moyenne des courbes rappel-précision de chaque requête
+
+    :param points: liste, pour chaque requête, contient les coordonnées des points des courbes rappel-précision
+    :return: liste des rappels et liste des précisions moyennes correspondantes
+    """
     # Liste ordonnée des rappels (abcisses) possibles sur lesquelles on veut retrouver leur précision
     recall_points = sorted(set(recall_point for qr_point in points for recall_point, precision_point in qr_point))
 
@@ -153,9 +167,62 @@ def average_curve_Precision_Recall(points):
 
 # F-measure, E-measure, R-measure
 
+# E-measure
+ALPHA=1
+
+def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=False):
+    """
+
+    :param search_function:
+    :param weight_tf_idf_query:
+    :param weight_tf_idf_doc:
+    :param print:
+    :return:
+    """
+
+    E_measures=[]
+
+    # Toutes les requêtes avec au moins un document pertinent
+    queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
+
+    # Collection des documents CACM
+    doc_coll = extract_documents_CACM()
+
+    # Nombre de documents de la collection
+    n_doc = len(doc_coll)
+
+    # Index inversé et dictionnaire des documents
+    rev_ind, dic_doc = read_CACM_index()
+
+    # parcours des requêtes
+    for query in queries:
+
+        qr_E_measure = []
+
+        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+
+        nb_relevant_doc = len(query.linked_docs)
+        for k in range(1, n_doc + 1):
+            n_true_positive = len(set(doc_id for doc_id, score in search_results[:k]) & set(query.linked_docs))
+            recall=n_true_positive / k
+            precision= n_true_positive / nb_relevant_doc
+            if precision !=0 and recall !=0:
+                e_measure=1-1/((ALPHA/precision)+(1-ALPHA)*(1/recall))
+                qr_E_measure.append(e_measure)
+
+        if print:
+            plt.plot(qr_E_measure)
+        E_measures.append(qr_E_measure)
+
+    if print:
+        plt.show()
+
+    return E_measures
+
 
 # Mean-Average Precision
 
 
 if __name__ == "__main__":
     precision_rappel(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
+    E_measure(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
