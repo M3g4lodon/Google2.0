@@ -165,12 +165,14 @@ def average_curve_Precision_Recall(points):
     return recall_points, precisions_points
 
 
-# F-measure, E-measure, R-measure
+# F-measure, E-measure, R-precision
 
 # E-measure
-ALPHA=1
+ALPHA = 1
+RANK = 100
 
-def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=False):
+
+def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     """
 
     :param search_function:
@@ -180,7 +182,7 @@ def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=Fal
     :return:
     """
 
-    E_measures=[]
+    e_measures = []
 
     # Toutes les requêtes avec au moins un document pertinent
     queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
@@ -197,32 +199,99 @@ def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=Fal
     # parcours des requêtes
     for query in queries:
 
-        qr_E_measure = []
+        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+
+        nb_relevant_doc = len(query.linked_docs)
+        n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
+        recall = n_true_positive / RANK
+        precision = n_true_positive / nb_relevant_doc
+
+        if precision != 0 and recall != 0:
+            e_measure = 1 - 1 / ((ALPHA / precision) + (1 - ALPHA) * (1 / recall))
+            e_measures.append(e_measure)
+
+    if print_graph:
+        plt.hist(e_measures, bins=20)
+        plt.show()
+
+    return sum(e_measures) / len(e_measures)
+
+
+def F_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_graph):
+    f_measures = []
+
+    # Toutes les requêtes avec au moins un document pertinent
+    queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
+
+    # Collection des documents CACM
+    doc_coll = extract_documents_CACM()
+
+    # Nombre de documents de la collection
+    n_doc = len(doc_coll)
+
+    # Index inversé et dictionnaire des documents
+    rev_ind, dic_doc = read_CACM_index()
+
+    # parcours des requêtes
+    for query in queries:
 
         search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
 
         nb_relevant_doc = len(query.linked_docs)
-        for k in range(1, n_doc + 1):
-            n_true_positive = len(set(doc_id for doc_id, score in search_results[:k]) & set(query.linked_docs))
-            recall=n_true_positive / k
-            precision= n_true_positive / nb_relevant_doc
-            if precision !=0 and recall !=0:
-                e_measure=1-1/((ALPHA/precision)+(1-ALPHA)*(1/recall))
-                qr_E_measure.append(e_measure)
+        n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
+        recall = n_true_positive / RANK
+        precision = n_true_positive / nb_relevant_doc
 
-        if print:
-            plt.plot(qr_E_measure)
-        E_measures.append(qr_E_measure)
+        if precision != 0 and recall != 0:
+            f_measure = 1 / ((ALPHA / precision) + (1 - ALPHA) * (1 / recall))
+            f_measures.append(f_measure)
 
-    if print:
+    if print_graph:
+        plt.hist(f_measures, bins=20)
         plt.show()
 
-    return E_measures
+    return sum(f_measures) / len(f_measures)
+
+
+def R_precision(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_graph):
+    r_precisions = []
+
+    # Toutes les requêtes avec au moins un document pertinent
+    queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
+
+    # Collection des documents CACM
+    doc_coll = extract_documents_CACM()
+
+    # Nombre de documents de la collection
+    n_doc = len(doc_coll)
+
+    # Index inversé et dictionnaire des documents
+    rev_ind, dic_doc = read_CACM_index()
+
+    # parcours des requêtes
+    for query in queries:
+        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+
+        nb_relevant_doc = len(query.linked_docs)
+        n_true_positive = len(
+            set(doc_id for doc_id, score in search_results[:nb_relevant_doc]) & set(query.linked_docs))
+        r_precision = n_true_positive / nb_relevant_doc
+
+        r_precisions.append(r_precision)
+    if print_graph:
+        plt.hist(r_precisions, bins=20)
+        plt.show()
+
+    return sum(r_precisions) / len(r_precisions)
 
 
 # Mean-Average Precision
 
+def precision_moyenne():
+    pass # en cours
 
 if __name__ == "__main__":
-    precision_rappel(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
-    E_measure(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
+    # precision_rappel(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
+    print(E_measure(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+    print(F_measure(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+    print(R_precision(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))

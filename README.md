@@ -10,8 +10,8 @@ mkdir Buffer
 cd Buffer
 mkdir Buffer
 ```
-============================================================================================================================
-Détails des différents dossiers:
+
+# Détails des différents dossiers:
 
 •	Le dossier Buffer contient pour les deux collections :
     - les dictionnaires
@@ -25,5 +25,5 @@ Détails des différents dossiers:
 
 
 
-============================================================================================================================
+
 Auteurs : Solène Duchamp | Mathieu Seris

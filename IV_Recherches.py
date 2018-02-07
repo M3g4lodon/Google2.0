@@ -5,7 +5,7 @@ from III_Index_Inverse import *
 from nltk.stem.snowball import SnowballStemmer
 
 stemmer = SnowballStemmer("english")
-COMMON_WORDS = set( stemmer.stem(word) for word in read_to_list(script_dir + common_words_relative_location))
+COMMON_WORDS = set(stemmer.stem(word) for word in read_to_list(script_dir + common_words_relative_location))
 
 
 ###################################################################
@@ -43,23 +43,23 @@ def boolean_search(query, index, dict_title):
         i += 1
     return result
 
-def boolean_search_for_evaluation(index,dict_title,query,doc_coll):
-    filtered_query=[stemmer.stem(word) for word in query.word_lists if stemmer.stem(word) not in COMMON_WORDS]
-    string_query=" and ".join(filtered_query)
-    retreived_doc_ids=boolean_search(string_query,index,dict_title)
-    not_retreived_do_ids= set(dict_title.keys()) - retreived_doc_ids
-    result=[]
+
+def boolean_search_for_evaluation(index, dict_title, query, doc_coll):
+    filtered_query = [stemmer.stem(word) for word in query.word_lists if stemmer.stem(word) not in COMMON_WORDS]
+    string_query = " and ".join(filtered_query)
+    retreived_doc_ids = boolean_search(string_query, index, dict_title)
+    not_retreived_do_ids = set(dict_title.keys()) - retreived_doc_ids
+    result = []
     for doc_id in retreived_doc_ids:
-        result.append((doc_id,1))
+        result.append((doc_id, 1))
     for doc_id in not_retreived_do_ids:
-        result.append((doc_id,0))
+        result.append((doc_id, 0))
     return result
 
 
 def extract_terms(query):
-    for word in filter(lambda w: w not in COMMON_WORDS,query.split()):
+    for word in filter(lambda w: w not in COMMON_WORDS, query.split()):
         yield stemmer.stem(word)
-
 
 
 # def weight_freq_norm(term,query, inverted_index, nb_docs, doc_id="0"):
@@ -98,12 +98,13 @@ def norm_factor(collection, doc_id):
 def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, weight_tf_idf_doc):
     nb_docs = len(dic_documents)  # nombre de documents dans la collection
     nq = 0  # représente la somme des poids au carré des termes de la query par rapport au document query
-    nd = defaultdict(int) # facteur de normalisation de chaque documents
+    nd = defaultdict(int)  # facteur de normalisation de chaque documents
     # s est le vecteur similarité s[j] est la similarité du doc j avec la query,
     # s est appelé aussi score
     s = [0 for _ in range(nb_docs + 1)]
-    term_list_query = [stemmer.stem(word) for word in re.split("\W+|\d+", query) if stemmer.stem(word) not in COMMON_WORDS]
-    reversed_index_query = construction_index_query(query) # Index inversé sur la requête
+    term_list_query = [stemmer.stem(word) for word in re.split("\W+|\d+", query) if
+                       stemmer.stem(word) not in COMMON_WORDS]
+    reversed_index_query = construction_index_query(query)  # Index inversé sur la requête
     for term in term_list_query:  # on parcourt les mots de la query
         wq = weight_tf_idf_query(term, reversed_index_query, reversed_index, nb_docs)
         nq += wq ** 2
@@ -112,13 +113,9 @@ def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, 
             doc_id = int(doc_id)
             nd[doc_id] += wt ** 2
             s[doc_id] += wt * wq
-    for j in range(nb_docs+1):
+    for j in range(nb_docs + 1):
         if s[j] != 0:
-            s[j] = s[j] / (sqrt(nq)*sqrt(nd[j]))
-    return ordered_score(s)
-
-
-def ordered_score(s):
+            s[j] = s[j] / (sqrt(nq) * sqrt(nd[j]))
     return sorted(enumerate(s), key=lambda x: -x[1])
 
 
@@ -139,12 +136,12 @@ def weight_tf_idf_doc1(term, doc_id, reversed_index, nb_docs):
 
 if __name__ == "__main__":
     reversed_index, dic_doc = read_CACM_index()
-    #reversed_index, dic_doc = read_CS276_index()
-    #print(len(give_title(boolean_search('not Stanford', reversed_index, dic_doc), dic_doc)))
+    # reversed_index, dic_doc = read_CS276_index()
+    # print(len(give_title(boolean_search('not Stanford', reversed_index, dic_doc), dic_doc)))
     collection = extract_documents_CACM()
-    query_40=""" List all articles dealing with data types in the following languages:
+    query_40 = """ List all articles dealing with data types in the following languages:
 Pascal, CLU, Alphard, Russell, Ada, ALGOL 68, EL1.  List any other languages
 that are referenced frequently in papers on the above languages (e.g. catch
 any languages with interesting type structures that I might have missed)."""
-    result=vectorial_search(reversed_index, dic_doc,query_40,weight_tf_idf_query1, weight_tf_idf_doc1)
+    result = vectorial_search(reversed_index, dic_doc, query_40, weight_tf_idf_query1, weight_tf_idf_doc1)
     print([res[0] for res in result[:10]])
