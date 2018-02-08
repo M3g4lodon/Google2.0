@@ -99,7 +99,7 @@ def precision_rappel(weight_tf_idf_query, weight_tf_idf_doc, print=False):
     recall_precision_queries = []
 
     for query in queries:
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc, doc_coll)
         qr_points = []
         nb_relevant_doc = len(query.linked_docs)
         for k in range(1, n_doc + 1):
@@ -197,7 +197,7 @@ def E_measure(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     # parcours des requêtes
     for query in queries:
 
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
@@ -233,7 +233,7 @@ def F_measure(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     # parcours des requêtes
     for query in queries:
 
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
@@ -268,7 +268,7 @@ def R_precision(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
 
     # parcours des requêtes
     for query in queries:
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(
@@ -304,7 +304,7 @@ def precision_moyenne_requete(weight_tf_idf_query, weight_tf_idf_doc, query):
     # Index inversé et dictionnaire des documents
     rev_ind, dic_doc = read_CACM_index()
 
-    search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+    search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
 
     # Nombre de documents pertinents pour cette requête
     nb_relevant_doc = len(query.linked_docs)

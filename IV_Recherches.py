@@ -95,7 +95,7 @@ def norm_factor(collection, doc_id):
             return norm_factor_doc
 
 
-def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, weight_tf_idf_doc, collection, alpha=None):
+def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, weight_tf_idf_doc, collection):
     nb_docs = len(dic_documents)  # nombre de documents dans la collection
     nq = 0  # représente la somme des poids au carré des termes de la query par rapport au document query
     nd = defaultdict(int)  # facteur de normalisation de chaque document
@@ -175,13 +175,13 @@ def weight_tf_idf_doc3(term, doc_id, reversed_index, nb_docs, collection):
     if len(list_of_terms) != 0:
         for word in list_of_terms:
             moy_tf += reversed_index[word]['tf'][doc_id]
-            sum_weight += small_weight_tf_idf_doc3(word, doc_id, list_of_terms)
+            sum_weight += small_weight_tf_idf_doc3(word, doc_id, list_of_terms,reversed_index)
         moy_tf = moy_tf/len(list_of_terms)
         nd = 1/sqrt(sum_weight)
         return (1 + log(tf_td))/(1+log(moy_tf)) * df_t * nd
     return 0
 
-def small_weight_tf_idf_doc3(term, doc_id, list_of_terms):
+def small_weight_tf_idf_doc3(term, doc_id, list_of_terms, reverse_index):
     moy_tf = 0
     tf_td = reversed_index[term]['tf'][doc_id]
     df_t = reversed_index[term]['idf']
