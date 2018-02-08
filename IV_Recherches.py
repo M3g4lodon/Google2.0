@@ -181,7 +181,7 @@ def weight_tf_idf_doc3(term, doc_id, reversed_index, nb_docs, collection):
         return (1 + log(tf_td))/(1+log(moy_tf)) * df_t * nd
     return 0
 
-def small_weight_tf_idf_doc3(term, doc_id, list_of_terms, reverse_index):
+def small_weight_tf_idf_doc3(term, doc_id, list_of_terms, reversed_index):
     moy_tf = 0
     tf_td = reversed_index[term]['tf'][doc_id]
     df_t = reversed_index[term]['idf']
