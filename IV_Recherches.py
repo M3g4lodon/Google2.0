@@ -104,7 +104,7 @@ def vectorial_search(reversed_index, dic_documents, query, weight_tf_idf_query, 
     s = [0 for _ in range(nb_docs + 1)]
     term_list_query = [stemmer.stem(word) for word in re.split("\W+|\d+", query) if
                        stemmer.stem(word) not in COMMON_WORDS]
-    reversed_index_query = construction_index_query(query)  # Index inversé sur la requête
+    reversed_index_query = construction_index_query(query, reversed_index)  # Index inversé sur la requête
     for term in term_list_query:  # on parcourt les mots de la query
         wq = weight_tf_idf_query(term, reversed_index_query, reversed_index, nb_docs, term_list_query)
         nq += wq ** 2
@@ -235,7 +235,7 @@ def weight_tf_idf_query5(term, reversed_index_query, reversed_index, nb_docs, te
             char += len(word)
             if tf > tf_max:
                 tf_max = tf
-        p_df = log((nb_docs - df_t) / nb_docs)
+        p_df = log((nb_docs - df_t) / df_t)
         if p_df < 0:
             p_df = 0
         nd = char ** ALPHA
@@ -254,12 +254,43 @@ def weight_tf_idf_doc5(term, doc_id, reversed_index, nb_docs, collection):
         char += len(word)
         if tf > tf_max:
             tf_max = tf
-    p_df = log((nb_docs - df_t)/nb_docs)
+    p_df = log((nb_docs - df_t)/df_t)
     if p_df < 0:
         p_df = 0
     nd = char**ALPHA
     return (0.5 + 0.5*tf_td/tf_max)*p_df*nd
 
+
+def weight_tf_idf_query6(term, reversed_index_query, reversed_index, nb_docs, term_list_query):
+    if term in reversed_index:
+        df_t = reversed_index_query[term]['idf']
+        char = 0
+        p_tf = 1 #tf de la query est nécessairement supérieur à 1
+        for word in term_list_query:
+            char += len(word)
+        p_df = log((nb_docs - df_t) / df_t)
+
+        nd = char ** ALPHA
+        return p_tf * p_df * nd
+    else:
+        return 0
+
+
+def weight_tf_idf_doc6(term, doc_id, reversed_index, nb_docs, collection):
+    tf_td = reversed_index[term]['tf'][doc_id]
+    if not tf_td > 0:
+        return 0
+    df_t = reversed_index[term]['idf']
+    list_of_terms = list_of_words(doc_id, collection)
+    p_tf = 1
+    char = 0
+    for word in list_of_terms:
+        char += len(word)
+    p_df = log((nb_docs - df_t)/df_t)
+    if p_df < 0:
+        p_df = 0
+    nd = char**ALPHA
+    return p_tf*p_df*nd
 
 
 def list_of_words(id_doc, collection):
@@ -296,9 +327,11 @@ like SYSTEM R, IMS, ADABAS, TOTAL, etc."""
     # result2 = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query2, weight_tf_idf_doc2, collection)
     # result3 = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query3, weight_tf_idf_doc3, collection)
     # result4 = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query4, weight_tf_idf_doc4, collection)
-    result5 = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query5, weight_tf_idf_doc5, collection)
+    #result5 = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query5, weight_tf_idf_doc5, collection)
+    result6 = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query6, weight_tf_idf_doc6, collection)
     # print([res[0] for res in result[:10]])
     # print([res[0] for res in result2[:10]])
     # print([res[0] for res in result3[:10]])
     # print([res[0] for res in result4[:10]])
-    print([res[0] for res in result5[:10]])
+    #print([res[0] for res in result5[:10]])
+    print([res[0] for res in result6[:10]])

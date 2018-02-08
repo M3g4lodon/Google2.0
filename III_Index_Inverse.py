@@ -49,18 +49,17 @@ def construction_index_one_block(collection):
     return reversed_index, dic_documents
 
 
-def construction_index_query(query):
+def construction_index_query(query, reversed_index):
     word_list_query = re.split("\W+|\d+", query)
-    # ajouter le traitement stemming !!!!
-    reversed_index = {}
+    reversed_index_query = {}
     for term in word_list_query:
         if term.lower() not in COMMON_WORDS:
             stemmed_term = stemmer.stem(term)
-            if stemmed_term in reversed_index:
-                reversed_index[stemmed_term]['tf'] += 1  # occurence du terme dans la query
+            if stemmed_term in reversed_index_query:
+                reversed_index_query[stemmed_term]['tf'] += 1  # occurence du terme dans la query
             else:
-                reversed_index[stemmed_term] = {'idf': 1, 'tf': 1}
-    return reversed_index
+                reversed_index_query[stemmed_term] = {'idf': reversed_index[stemmed_term]['idf']+1, 'tf': 1}
+    return reversed_index_query
 
 
 def write_in_buffer(block_index, reversed_index, dic_documents):
