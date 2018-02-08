@@ -340,8 +340,12 @@ def precision_moyenne(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False)
 
 # Benchmark des fonctions de recherche vertorielle
 
-TO_BE_TESTED = {"Pondération 1": (weight_tf_idf_query1, weight_tf_idf_doc1),
-                "Pondération 2": (weight_tf_idf_query1, weight_tf_idf_doc1)}  # TODO remove
+TO_BE_TESTED = {"tf_0-idf": (weight_tf_idf_query1, weight_tf_idf_doc1),
+                "tf_1-idf_0": (weight_tf_idf_query2, weight_tf_idf_doc2),
+                "tf_2-idf normalisé_1 (sqrt(wd))": (weight_tf_idf_query3, weight_tf_idf_doc3),
+                "tf_3-idf normalisé_1 (sqrt(wd))":(weight_tf_idf_query4, weight_tf_idf_doc4),
+                "tf_4-idf_2 normalisé_2 (char)":(weight_tf_idf_query5, weight_tf_idf_doc5),
+                "tf_5-idf_2 normalisé_2 (char)":(weight_tf_idf_query6, weight_tf_idf_doc6)}  # TODO remove
 
 
 def benchmark_precision_rappel():
@@ -349,6 +353,7 @@ def benchmark_precision_rappel():
         recall_points, precision_points = precision_rappel(weight_query, weight_doc)
         plt.plot(recall_points, precision_points, label=weigth_name)
 
+    plt.legend()
     plt.show()
 
 
