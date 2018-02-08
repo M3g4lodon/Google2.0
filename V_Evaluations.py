@@ -75,10 +75,9 @@ def occupation_espace_disque():
 
 # Précision / Rappel
 
-def precision_rappel(search_function, weight_tf_idf_query, weight_tf_idf_doc, print=False):
+def precision_rappel(weight_tf_idf_query, weight_tf_idf_doc, print=False):
     """ Calcule la courbe rappel-précision pour une fonction de recherche donnée sur nos requêtes
 
-    :param search_function: fonction de recherche à tester
     :param weight_tf_idf_query: fonction de pondération de la requête
     :param weight_tf_idf_doc: fonction de pondération de la collection de document
     :param print: booléen pour afficher ou non la courbe rappel-précision
@@ -100,12 +99,12 @@ def precision_rappel(search_function, weight_tf_idf_query, weight_tf_idf_doc, pr
     recall_precision_queries = []
 
     for query in queries:
-        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
         qr_points = []
         nb_relevant_doc = len(query.linked_docs)
         for k in range(1, n_doc + 1):
             n_true_positive = len(set(doc_id for doc_id, score in search_results[:k]) & set(query.linked_docs))
-            qr_points.append([(n_true_positive / k), (n_true_positive / nb_relevant_doc)])
+            qr_points.append([(n_true_positive / nb_relevant_doc), (n_true_positive / k)])
         qr_points.sort(key=lambda x: x[0])
         i = n_doc - 2
         while i >= 0:
@@ -172,10 +171,9 @@ ALPHA = 1
 RANK = 100
 
 
-def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
+def E_measure(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     """
 
-    :param search_function:
     :param weight_tf_idf_query:
     :param weight_tf_idf_doc:
     :param print:
@@ -199,12 +197,12 @@ def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_gra
     # parcours des requêtes
     for query in queries:
 
-        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
-        recall = n_true_positive / RANK
-        precision = n_true_positive / nb_relevant_doc
+        recall = n_true_positive / nb_relevant_doc
+        precision = n_true_positive / RANK
 
         if precision != 0 and recall != 0:
             e_measure = 1 - 1 / ((ALPHA / precision) + (1 - ALPHA) * (1 / recall))
@@ -214,10 +212,10 @@ def E_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_gra
         plt.hist(e_measures, bins=20)
         plt.show()
 
-    return sum(e_measures) / len(e_measures)
+    return np.average(e_measures), np.std(e_measures)
 
 
-def F_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_graph):
+def F_measure(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     f_measures = []
 
     # Toutes les requêtes avec au moins un document pertinent
@@ -235,12 +233,12 @@ def F_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_gra
     # parcours des requêtes
     for query in queries:
 
-        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
-        recall = n_true_positive / RANK
-        precision = n_true_positive / nb_relevant_doc
+        recall = n_true_positive / nb_relevant_doc
+        precision = n_true_positive / RANK
 
         if precision != 0 and recall != 0:
             f_measure = 1 / ((ALPHA / precision) + (1 - ALPHA) * (1 / recall))
@@ -250,10 +248,10 @@ def F_measure(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_gra
         plt.hist(f_measures, bins=20)
         plt.show()
 
-    return sum(f_measures) / len(f_measures)
+    return np.average(f_measures), np.std(f_measures)
 
 
-def R_precision(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_graph):
+def R_precision(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     r_precisions = []
 
     # Toutes les requêtes avec au moins un document pertinent
@@ -270,7 +268,7 @@ def R_precision(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_g
 
     # parcours des requêtes
     for query in queries:
-        search_results = search_function(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(
@@ -282,16 +280,134 @@ def R_precision(search_function, weight_tf_idf_query, weight_tf_idf_doc, print_g
         plt.hist(r_precisions, bins=20)
         plt.show()
 
-    return sum(r_precisions) / len(r_precisions)
+    return np.average(r_precisions), np.std(r_precisions)
 
 
 # Mean-Average Precision
+def precision_moyenne_requete(weight_tf_idf_query, weight_tf_idf_doc, query):
+    """ Renvoie la précision moyenne d'une requête pour une fonction de recherche
 
-def precision_moyenne():
-    pass # en cours
+    :param weight_tf_idf_query:
+    :param weight_tf_idf_doc:
+    :param query:
+    :return: average_precision (float)
+    """
+
+    average_precision = 0
+
+    # Collection des documents CACM
+    doc_coll = extract_documents_CACM()
+
+    # Nombre de documents de la collection
+    n_doc = len(doc_coll)
+
+    # Index inversé et dictionnaire des documents
+    rev_ind, dic_doc = read_CACM_index()
+
+    search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc)
+
+    # Nombre de documents pertinents pour cette requête
+    nb_relevant_doc = len(query.linked_docs)
+
+    rang = 0
+    nb_relevant_doc_seen = 0
+    while nb_relevant_doc_seen < nb_relevant_doc and rang < n_doc - 1:
+        rang += 1
+        if search_results[rang - 1][0] in query.linked_docs:
+            nb_relevant_doc_seen += 1
+            precision_at_rank = nb_relevant_doc_seen / rang
+            average_precision += precision_at_rank
+
+    return average_precision / nb_relevant_doc_seen
+
+
+def precision_moyenne(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
+    average_precisions_qr = []
+
+    # Toutes les requêtes avec au moins un document pertinent
+    queries = [qr for qr in extract_queries_CACM() if len(qr.linked_docs) > 0]
+
+    for query in queries:
+        av_pr_qr = precision_moyenne_requete(weight_tf_idf_query, weight_tf_idf_doc, query)
+        average_precisions_qr.append(av_pr_qr)
+
+    if print_graph:
+        plt.hist(average_precisions_qr, bins=20)
+        plt.show()
+
+    return sum(average_precisions_qr) / len(queries)
+
+
+# Benchmark des fonctions de recherche vertorielle
+
+TO_BE_TESTED = {"Pondération 1": (weight_tf_idf_query1, weight_tf_idf_doc1),
+                "Pondération 2": (weight_tf_idf_query1, weight_tf_idf_doc1)}  # TODO remove
+
+
+def benchmark_precision_rappel():
+    for weigth_name, (weight_query, weight_doc) in TO_BE_TESTED.items():
+        recall_points, precision_points = precision_rappel(weight_query, weight_doc)
+        plt.plot(recall_points, precision_points, label=weigth_name)
+
+    plt.show()
+
+
+def benchmark_E_measure():
+    i = 1
+    for weigth_name, (weight_query, weight_doc) in TO_BE_TESTED.items():
+        ave, std = E_measure(weight_query, weight_doc)
+        plt.scatter(i, ave, label=weigth_name)
+        plt.errorbar(i, ave, std)
+
+        i += 1
+
+    plt.title("E-Mesures")
+    plt.legend()
+    plt.xlabel("Pondérations testées")
+    plt.ylim(0, 1)
+    plt.show()
+
+
+def benchmark_F_measure():
+    i = 1
+    for weigth_name, (weight_query, weight_doc) in TO_BE_TESTED.items():
+        ave, std = F_measure(weight_query, weight_doc)
+        plt.scatter(i, ave, label=weigth_name)
+        plt.errorbar(i, ave, std)
+
+        i += 1
+
+    plt.title("F-Mesures")
+    plt.legend()
+    plt.xlabel("Pondérations testées")
+    plt.ylim(0, 1)
+    plt.show()
+
+
+def benchmark_R_precision():
+    i = 1
+    for weigth_name, (weight_query, weight_doc) in TO_BE_TESTED.items():
+        ave, std = R_precision(weight_query, weight_doc)
+        plt.scatter(i, ave, label=weigth_name)
+        plt.errorbar(i, ave, std)
+
+        i += 1
+
+    plt.title("R-Précisions")
+    plt.legend()
+    plt.xlabel("Pondérations testées")
+    plt.ylim(0, 1)
+    plt.show()
+
 
 if __name__ == "__main__":
-    # precision_rappel(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
-    print(E_measure(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
-    print(F_measure(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
-    print(R_precision(vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+    # precision_rappel( weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
+    # print(E_measure( weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+    # print(F_measure(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+    # print(R_precision(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+    # print(precision_moyenne(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
+
+    benchmark_precision_rappel()
+    benchmark_E_measure()
+    benchmark_F_measure()
+    benchmark_R_precision()
