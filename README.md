@@ -114,19 +114,25 @@ La fin du module contient plusieurs fonctions de pondérations.
 
 ##### Temps de calcul pour l'indexation
 Temps de calcul sur notre machine : 4.94s pour l'indexation de CACM
+
 Pour afficher le temps de calcul sur votre machine : ```print(temps_calcul_indexation())```
+
 (Temps exprimé en secondes)
 
 
 ##### Temps de réponse à une requête
  - Recherche booléenne
  Temps de calcul sur notre machine : 0.28 ms
+ 
  Pour afficher le temps de calcul sur votre machine : ```print(temps_calcul_boolean_query())```
+ 
  (Temps exprimé en secondes)
  
  - Recherche vectorielle
  Temps de calcul sur notre machine : 17 ms
+
 Pour afficher le temps de calcul sur votre machine : ```print(temps_calcul_vector_query())```
+
 (Temps exprimé en secondes)
 
 ##### Occupation de l'espace disque par les différents indexs.
