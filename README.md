@@ -2,7 +2,8 @@ Projet Recherche Information Web
 ============================================================================================================================
 
 Par Solène Duchamp & Mathieu Seris
-Prérequis :
+
+# Prérequis :
 
 •	Cloner le repository : https://github.com/M3g4lodon/Google2.0
 
