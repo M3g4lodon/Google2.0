@@ -23,7 +23,13 @@ mkdir Buffer
 
 •	Dans le dossier racine, les fichiers sont nommés explicitement
 
+# Rapport du projet
 
+## I Traitements linguistiques
+
+Le
+Question 1: il i
+![Image](./Google2.0/Results/CACM%20LogRangLogFréquence.png)
 
 
 Auteurs : Solène Duchamp | Mathieu Seris

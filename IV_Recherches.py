@@ -333,5 +333,5 @@ like SYSTEM R, IMS, ADABAS, TOTAL, etc."""
     # print([res[0] for res in result2[:10]])
     # print([res[0] for res in result3[:10]])
     # print([res[0] for res in result4[:10]])
-    #print([res[0] for res in result5[:10]])
+    # print([res[0] for res in result5[:10]])
     print([res[0] for res in result6[:10]])

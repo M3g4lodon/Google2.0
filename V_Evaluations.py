@@ -34,7 +34,14 @@ def temps_calcul_boolean_query():
 
 
 def temps_calcul_vector_query():
-    pass
+    return timeit.timeit("result = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query1, weight_tf_idf_doc1, collection)",
+                         number=1, setup="""from III_Index_Inverse import read_CACM_index;"""
+                                         """from IV_Recherches import give_title, vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1;"""
+                                         """from I_Importation_Donnees import extract_documents_CACM;"""
+                                         """reversed_index, dic_doc = read_CACM_index();"""
+                                         """collection = extract_documents_CACM();"""
+                                         """query_60 = 'Hardware and software relating to database management systems. Database packages, back end computers, special associative hardware with microcomputers attached to disk heads or things like RAP, relational or network (CODASYL) or hierarchical models, systems like SYSTEM R, IMS, ADABAS, TOTAL, etc.';"""
+                         )
 
 
 # occupation de l’espace disque par les différents index.
@@ -354,6 +361,9 @@ def benchmark_precision_rappel():
         plt.plot(recall_points, precision_points, label=weigth_name)
 
     plt.legend()
+    plt.title("Précision - Rappel")
+    plt.xlabel("Rappel")
+    plt.ylabel("Précision")
     plt.show()
 
 
@@ -369,6 +379,7 @@ def benchmark_E_measure():
     plt.title("E-Mesures")
     plt.legend()
     plt.xlabel("Pondérations testées")
+    plt.ylabel("E Mesure")
     plt.ylim(0, 1)
     plt.show()
 
@@ -385,6 +396,7 @@ def benchmark_F_measure():
     plt.title("F-Mesures")
     plt.legend()
     plt.xlabel("Pondérations testées")
+    plt.ylabel("F Mesure")
     plt.ylim(0, 1)
     plt.show()
 
@@ -401,11 +413,13 @@ def benchmark_R_precision():
     plt.title("R-Précisions")
     plt.legend()
     plt.xlabel("Pondérations testées")
+    plt.ylabel("R Précision")
     plt.ylim(0, 1)
     plt.show()
 
 
 if __name__ == "__main__":
+    print(temps_calcul_vector_query())
     # precision_rappel( weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
     # print(E_measure( weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
     # print(F_measure(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
