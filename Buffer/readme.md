@@ -1,0 +1,1 @@
+Dossier contenant les indexs inversés stockés sur le disque
