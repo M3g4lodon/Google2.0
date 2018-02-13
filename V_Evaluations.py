@@ -34,14 +34,15 @@ def temps_calcul_boolean_query():
 
 
 def temps_calcul_vector_query():
-    return timeit.timeit("result = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query1, weight_tf_idf_doc1, collection)",
-                         number=1, setup="""from III_Index_Inverse import read_CACM_index;"""
-                                         """from IV_Recherches import give_title, vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1;"""
-                                         """from I_Importation_Donnees import extract_documents_CACM;"""
-                                         """reversed_index, dic_doc = read_CACM_index();"""
-                                         """collection = extract_documents_CACM();"""
-                                         """query_60 = 'Hardware and software relating to database management systems. Database packages, back end computers, special associative hardware with microcomputers attached to disk heads or things like RAP, relational or network (CODASYL) or hierarchical models, systems like SYSTEM R, IMS, ADABAS, TOTAL, etc.';"""
-                         )
+    return timeit.timeit(
+        "result = vectorial_search(reversed_index, dic_doc, query_60, weight_tf_idf_query1, weight_tf_idf_doc1, collection)",
+        number=1, setup="""from III_Index_Inverse import read_CACM_index;"""
+                        """from IV_Recherches import give_title, vectorial_search, weight_tf_idf_query1, weight_tf_idf_doc1;"""
+                        """from I_Importation_Donnees import extract_documents_CACM;"""
+                        """reversed_index, dic_doc = read_CACM_index();"""
+                        """collection = extract_documents_CACM();"""
+                        """query_60 = 'Hardware and software relating to database management systems. Database packages, back end computers, special associative hardware with microcomputers attached to disk heads or things like RAP, relational or network (CODASYL) or hierarchical models, systems like SYSTEM R, IMS, ADABAS, TOTAL, etc.';"""
+    )
 
 
 # occupation de l’espace disque par les différents index.
@@ -60,20 +61,20 @@ def occupation_espace_disque():
     print('CACM')
     reversed_index, _ = read_CACM_index()
     size_memory_CACM = sys.getsizeof(reversed_index)
-    print(convert_bytes(size_memory_CACM))
+    print("Memory : " + convert_bytes(size_memory_CACM))
     reversed_index, _ = read_CACM_index()
     CACM_file = os.getcwd() + "/Buffer/" + "Reversed_Index_CACM.json"
     size_disk_CACM = os.stat(CACM_file).st_size
-    print(convert_bytes(size_disk_CACM))
+    print("Disk : " + convert_bytes(size_disk_CACM))
 
     print('CS276')
     reversed_index, _ = read_CS276_index()
     size_memory_CS276 = sys.getsizeof(reversed_index)
-    print(convert_bytes(size_memory_CS276))
+    print("Memory : " + convert_bytes(size_memory_CS276))
     reversed_index, _ = read_CACM_index()
     CS276_file = os.getcwd() + "/Buffer/" + "Reversed_Index_CS276.json"
     size_disk_CS276 = os.stat(CS276_file).st_size
-    print(convert_bytes(size_disk_CS276))
+    print("Disk : " + convert_bytes(size_disk_CS276))
 
 
 ###############################################################################
@@ -106,7 +107,8 @@ def precision_rappel(weight_tf_idf_query, weight_tf_idf_doc, print=False):
     recall_precision_queries = []
 
     for query in queries:
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc, doc_coll)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,
+                                          doc_coll)
         qr_points = []
         nb_relevant_doc = len(query.linked_docs)
         for k in range(1, n_doc + 1):
@@ -204,7 +206,8 @@ def E_measure(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     # parcours des requêtes
     for query in queries:
 
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,
+                                          doc_coll)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
@@ -240,7 +243,8 @@ def F_measure(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
     # parcours des requêtes
     for query in queries:
 
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,
+                                          doc_coll)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(set(doc_id for doc_id, score in search_results[:RANK]) & set(query.linked_docs))
@@ -275,7 +279,8 @@ def R_precision(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False):
 
     # parcours des requêtes
     for query in queries:
-        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
+        search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,
+                                          doc_coll)
 
         nb_relevant_doc = len(query.linked_docs)
         n_true_positive = len(
@@ -311,7 +316,7 @@ def precision_moyenne_requete(weight_tf_idf_query, weight_tf_idf_doc, query):
     # Index inversé et dictionnaire des documents
     rev_ind, dic_doc = read_CACM_index()
 
-    search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc,doc_coll)
+    search_results = vectorial_search(rev_ind, dic_doc, query.summary, weight_tf_idf_query, weight_tf_idf_doc, doc_coll)
 
     # Nombre de documents pertinents pour cette requête
     nb_relevant_doc = len(query.linked_docs)
@@ -350,9 +355,9 @@ def precision_moyenne(weight_tf_idf_query, weight_tf_idf_doc, print_graph=False)
 TO_BE_TESTED = {"tf_0-idf": (weight_tf_idf_query1, weight_tf_idf_doc1),
                 "tf_1-idf_0": (weight_tf_idf_query2, weight_tf_idf_doc2),
                 "tf_2-idf normalisé_1 (sqrt(wd))": (weight_tf_idf_query3, weight_tf_idf_doc3),
-                "tf_3-idf normalisé_1 (sqrt(wd))":(weight_tf_idf_query4, weight_tf_idf_doc4),
-                "tf_4-idf_2 normalisé_2 (char)":(weight_tf_idf_query5, weight_tf_idf_doc5),
-                "tf_5-idf_2 normalisé_2 (char)":(weight_tf_idf_query6, weight_tf_idf_doc6)}  # TODO remove
+                "tf_3-idf normalisé_1 (sqrt(wd))": (weight_tf_idf_query4, weight_tf_idf_doc4),
+                "tf_4-idf_2 normalisé_2 (char)": (weight_tf_idf_query5, weight_tf_idf_doc5),
+                "tf_5-idf_2 normalisé_2 (char)": (weight_tf_idf_query6, weight_tf_idf_doc6)}  # TODO remove
 
 
 def benchmark_precision_rappel():
@@ -419,14 +424,17 @@ def benchmark_R_precision():
 
 
 if __name__ == "__main__":
+    print(temps_calcul_indexation())
+    print(temps_calcul_boolean_query())
     print(temps_calcul_vector_query())
+    occupation_espace_disque()
     # precision_rappel( weight_tf_idf_query1, weight_tf_idf_doc1, print=True)
     # print(E_measure( weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
     # print(F_measure(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
     # print(R_precision(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
     # print(precision_moyenne(weight_tf_idf_query1, weight_tf_idf_doc1, print_graph=True))
 
-    benchmark_precision_rappel()
-    benchmark_E_measure()
-    benchmark_F_measure()
-    benchmark_R_precision()
+    # benchmark_precision_rappel()
+    # benchmark_E_measure()
+    # benchmark_F_measure()
+    # benchmark_R_precision()

@@ -37,7 +37,7 @@ def question_2(collection):
 
 
 # Answer [CACM]     8741 mots (taille de vocabulaire) (sans stemmer)
-# Answer [CS276]    297746 mots (taille du vocabulaire)
+# Answer [CS276]    297,746 mots (taille du vocabulaire)
 
 def question_2_half(collection):
     nb_token = 0
@@ -54,8 +54,8 @@ def question_2_half(collection):
 
     return len(words), nb_token
 
-
-# [CS276] result (184722, 8729267)
+# [CACM] result (3773, 53356)
+# [CS276] result (184.722, 8.729.267)
 
 def question_3(collection):
     M_full, T_full = question_2(collection)
@@ -122,12 +122,12 @@ def question_5(collection):
 
 
 if __name__ == "__main__":
-    # documents = extract_documents_CACM()
-    documents = extract_documents_CS276()
+    documents = extract_documents_CACM()
+    #documents = extract_documents_CS276()
     print(len(documents))
     # print(question_1(documents))
     # print(question_2(documents))
-    # print(question_2_half(documents))
+    print(question_2_half(documents))
     # print(question_3(documents))
     # print(question_4(documents))
     # question_5(documents)

@@ -47,7 +47,7 @@ class DefaultOrderedDict(OrderedDict):
                                                OrderedDict.__repr__(self))
 
 
-class SortedDict(OrderedDict):
+class SortedDict(OrderedDict): # Non utilisé
     def __setitem__(self, key, value):
         try:
             int(key)
@@ -71,7 +71,7 @@ class SortedDict(OrderedDict):
         return 'SortedDict(%s)' % (OrderedDict.__repr__(self))
 
 
-class DefaultSortedDict(SortedDict):
+class DefaultSortedDict(SortedDict): # Non utilisé
     def __init__(self, default_factory=None, *a, **kw):
         if (default_factory is not None and
                 not isinstance(default_factory, Callable)):
@@ -100,6 +100,7 @@ class DefaultSortedDict(SortedDict):
 
 
 class InvertedIndex(DefaultOrderedDict):
+
     @staticmethod
     def inverted_index_factory():
         return {'idf': 0, 'tf': defaultdict(int)}
