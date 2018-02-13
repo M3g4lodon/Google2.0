@@ -13,7 +13,7 @@ Par Solène Duchamp & Mathieu Seris
 
 •	Le dossier Buffer contient pour les deux collections :
     - les dictionnaires de correspondance titre de document et id de document
-    - les indexs inversés
+    - les index inversés
 
 •	Le dossier Data contient les données initiales fournies
 
@@ -44,7 +44,7 @@ Paramètres k et b de la loi de Heap :
 - CACM : k = 47.93 et b = 0.4494
 - CS276 : k = 4.713 et b = 0.6621
 
-La différence de valeur entre les deux collections peut s'expliquer par le fait que la collection CS276 a été pré-stremmée, 
+La différence de valeur entre les deux collections peut s'expliquer par le fait que la collection CS276 a été pré-racinisée,
 contrairement à la collection CACM.
 
 Question 4 : Estimation de la taille du vocabulaire pour des collections à 1 000 000 tokens
@@ -56,33 +56,33 @@ Vous trouverez ces 4 graphes (2 par collection) dans le dossier Results avec des
 
 ## II Indexation
 
-### Création des indexs inversés
+### Création des index inversés
 
 A partir des données importées par le module *I_Importation_Donnees.py*, le module 
 *III_Index_Inverse.py* contient les fonctions pour créer un index inversé à partir de nos collections.
 
 La première partie du module contient les fonctions nécessaires au BSBI : 
- - ```create_posting_list``` crée une "posting list" ou liste terme-document à partir d'une collection de documents
+ - ```create_posting_list``` crée une "posting list" ou liste de tuple (terme, document) à partir d'une collection de documents
  - ```construction_index_one_block``` crée à partir d'une collection de documents un index inversé 
  - ```write_in_buffer``` écrit un sous-index inversé et un sous-dictionnaire de correspondance titre-id de document, dans le dossier ./Buffer/Buffer
  - ```read_in_buffer``` lit les fichiers écrits sur le disque par la fonction précédente
  - ```process_block``` est la fonction utilisée par les "workers" ("Pool" en "multiprocess") lors de la parallélisation des calculs
  - ```BSBI_Index_construction_CS276``` crée un index inversé et un dictionnaire de correspondance titre/id de document pour la collection CS276,
  en utilisant la technique du BSBI. Lors de la phase de fusion des résultats intermédiaires, on charge un sous index inversé à la fois
- que l'on fusionne avec notre grand index inversé recherché.
+ que l'on fusionne avec notre grand index inversé recherché
  
  La deuxième partie du module contient des fonctions pour la construction d'un index inversé, en s'inspirant
  du paradigme MapReduce :
- - ```Map_reduced_Index``` est la fonction principale qui génère l'index inversé à partir d'une collection de documents.
- Afin d'utiliser au mieux les fonctions map, reduce et filter de python , nous avons créé deux autres fonctions :
- - ```concat_dict``` fusionne deux dictionnaires (utilisé pour la création du dictionnaire de correspondance titre/id de document
+ - ```Map_reduced_Index``` est la fonction principale qui génère l'index inversé à partir d'une collection de documents
+ Afin d'utiliser au mieux les fonctions map, reduce et filter de python, nous avons créé deux autres fonctions :
+ - ```concat_dict``` fusionne deux dictionnaires (utilisée pour la création du dictionnaire de correspondance titre/id de document
  dans un reduce)
  - ```create_reversed_index``` crée avec la bonne forme un index inversé à partir d'une posting list dans un reduce
 
 La dernière partie du module, intitulée "Tools" répertorie plusieurs outils qui nous ont été très utiles pour les développements
 suivants du projet. 
-- Les fonctions ```update_Xxx``` permettent de créer ou écraser une ancienne version de nos index inversés.
-- Les fonctions ```read_Xxx``` permettent de lire les index inversés écrits sur le disque dans le dossier Buffer.
+- Les fonctions ```update_Xxx``` permettent de créer ou écraser une ancienne version de nos index inversés
+- Les fonctions ```read_Xxx``` permettent de lire les index inversés écrits sur le disque dans le dossier Buffer
 
 Ainsi, nous avons construit des index inversés pour les deux collections de documents. Les écrire sur le disque, nous a permis
 de pouvoir les utiliser très rapidement, plutôt que de devoir attendre 5 minutes dans le cas de CS276.
@@ -95,7 +95,7 @@ cette classe pour la phase de recherche, où nous manipulons énormément l'inde
 ### Recherches booléennes et vectorielles
 
 A partir des données extraites depuis le module *I_Importation_Donnees.py*, avec les indexs inversés du module *III_Index_Inverse.py*,
-nous manipulons ces indexs inversés pour réaliser des recherches dans le module *IV_Recherches.py*.
+nous manipulons ces index inversés pour réaliser des recherches dans le module *IV_Recherches.py*.
 
 Nous effectuons une recherche booléenne avec la fonction ```boolean_search```. Cette fonction prend en argument, la requête en chaine de caractères
 ( de la forme "Stanford", ou "Computer not Stanford"). Nous utilisons des opérations ensemblistes avec la classe set de Python pour 
